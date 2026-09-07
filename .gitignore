@@ -1,14 +1,13 @@
-# Python
-venv/
-__pycache__/
-*.pyc
-
 # Environment variables
 .env
 
-# Node
-node_modules/
-dist/
+# Python
+__pycache__/
+*.py[cod]
 
-# VS Code
-.vscode/
+# Virtual environment
+venv/
+.venv/
+
+# Django
+db.sqlite3
