@@ -1,5 +1,6 @@
-import DispatcherDashboard from "./DispatcherDashboard";
-import IncidentReportForm from "./features/incidents/IncidentReportForm";
+import IncidentReportForm from './features/incidents/IncidentReportForm'
+import DispatcherDashboard from './DispatcherDashboard'
+import './App.css'
 
 function App() {
   return (
@@ -7,7 +8,7 @@ function App() {
       <IncidentReportForm />
       <DispatcherDashboard />
     </>
-  );
+  )
 }
 
-export default App;
+export default App

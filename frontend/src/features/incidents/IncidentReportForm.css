@@ -1,0 +1,160 @@
+/* Incident report form (TIR-32).
+   Mobile-first: the primary user is a driver on a phone at the roadside.
+   Colours come from the tokens already defined in src/index.css, so this form
+   follows the app's light and dark schemes without touching global styles. */
+
+.incident-form-page {
+  /* Text on the accent-filled submit button. The accent is dark purple in the
+     light scheme and pale purple in the dark one, so the label has to flip. */
+  --incident-submit-fg: #fff;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  /* #root centres its text; form controls read better left-aligned. */
+  text-align: left;
+}
+
+@media (prefers-color-scheme: dark) {
+  .incident-form-page {
+    --incident-submit-fg: #16171d;
+  }
+}
+
+.incident-form,
+.incident-form-field {
+  display: flex;
+  flex-direction: column;
+}
+
+.incident-form {
+  gap: 20px;
+}
+
+.incident-form-field {
+  gap: 6px;
+}
+
+.incident-form-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.incident-form-title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 125%;
+  letter-spacing: -0.4px;
+}
+
+.incident-form-subtitle {
+  font-size: 15px;
+  line-height: 140%;
+  color: var(--text);
+}
+
+.incident-form-label {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-h);
+}
+
+.incident-form-required {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.incident-form-hint {
+  font-size: 13px;
+  line-height: 135%;
+  color: var(--text);
+}
+
+.incident-form-input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-family: var(--sans);
+  /* Must stay at or above 16px: mobile Safari zooms the viewport on focus for
+     anything smaller, which is what causes the horizontal-scroll trap. */
+  font-size: 16px;
+  line-height: 140%;
+  transition: border-color 0.2s;
+}
+
+/* Normalises padding on iOS text fields. Excluded for datetime-local, where
+   removing the native appearance also removes the picker affordance. */
+.incident-form-input:not([type='datetime-local']) {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.incident-form-input:hover {
+  border-color: var(--accent-border);
+}
+
+.incident-form-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+
+.incident-form-textarea {
+  /* Vertical only: horizontal dragging would push the page sideways. */
+  resize: vertical;
+  min-height: 120px;
+}
+
+.incident-form-submit {
+  min-height: 52px;
+  margin-top: 4px;
+  padding: 14px 20px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--incident-submit-fg);
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    opacity 0.2s,
+    filter 0.2s;
+}
+
+.incident-form-submit:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.incident-form-submit:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.incident-form-submit:disabled {
+  background: var(--accent-bg);
+  color: var(--text);
+  cursor: not-allowed;
+}
+
+@media (min-width: 480px) {
+  .incident-form-page {
+    padding: 32px 24px 56px;
+  }
+
+  .incident-form-title {
+    font-size: 32px;
+  }
+}
