@@ -1,8 +1,12 @@
 import DispatcherDashboard from "./DispatcherDashboard";
+import IncidentReportForm from "./features/incidents/IncidentReportForm";
 
 function App() {
   return (
-    <DispatcherDashboard />
+    <>
+      <IncidentReportForm />
+      <DispatcherDashboard />
+    </>
   );
 }
 
