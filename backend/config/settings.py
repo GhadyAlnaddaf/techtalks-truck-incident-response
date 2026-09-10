@@ -14,24 +14,19 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Load .env from the ROOT of the project
-# BASE_DIR = backend/
-# BASE_DIR.parent = project root/
 env_path = BASE_DIR.parent / '.env'
 load_dotenv(dotenv_path=env_path, override=True)
 
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-# Hosts
-ALLOWED_HOSTS = (
-    os.getenv('ALLOWED_HOSTS', '').split(',')
-    if os.getenv('ALLOWED_HOSTS')
-    else []
-)
+DEBUG = True
+
+ALLOWED_HOSTS = [
+    "127.0.0.1",
+    "localhost",
+]
 
 
 # ============================================================
@@ -45,11 +40,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'incidents',
 ]
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -159,3 +156,11 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+]
