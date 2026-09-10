@@ -78,6 +78,9 @@
 
 .incident-form-input {
   box-sizing: border-box;
+  /* Normalises padding on iOS text fields. */
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   max-width: 100%;
   min-height: 48px;
@@ -92,13 +95,6 @@
   font-size: 16px;
   line-height: 140%;
   transition: border-color 0.2s;
-}
-
-/* Normalises padding on iOS text fields. Excluded for datetime-local, where
-   removing the native appearance also removes the picker affordance. */
-.incident-form-input:not([type='datetime-local']) {
-  -webkit-appearance: none;
-  appearance: none;
 }
 
 .incident-form-input:hover {
