@@ -6,7 +6,7 @@
 .incident-form-page {
   /* Text on the accent-filled submit button. The accent is dark purple in the
      light scheme and pale purple in the dark one, so the label has to flip. */
-  --incident-submit-fg: #fff;
+  /*--incident-submit-fg: #fff;*/
 
   box-sizing: border-box;
   width: 100%;
@@ -78,7 +78,6 @@
 
 .incident-form-input {
   box-sizing: border-box;
-  /* Normalises padding on iOS text fields. */
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
@@ -90,8 +89,6 @@
   background: var(--bg);
   color: var(--text-h);
   font-family: var(--sans);
-  /* Must stay at or above 16px: mobile Safari zooms the viewport on focus for
-     anything smaller, which is what causes the horizontal-scroll trap. */
   font-size: 16px;
   line-height: 140%;
   transition: border-color 0.2s;

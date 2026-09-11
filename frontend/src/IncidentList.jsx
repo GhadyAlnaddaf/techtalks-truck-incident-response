@@ -32,7 +32,7 @@ function IncidentList({ incidents }) {
           </p>
 
           <p>
-            <strong>Occurred At:</strong> {incident.occurred_at}
+            <strong>Created At:</strong> {incident.created_at}
           </p>
         </div>
       ))}
