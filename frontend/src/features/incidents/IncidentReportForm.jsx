@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import './IncidentReportForm.css'
 
-/** Fields that gate the submit button. */
 const REQUIRED_FIELDS = ['truck_id', 'location', 'description']
 
 const createInitialValues = () => ({
@@ -12,50 +11,104 @@ const createInitialValues = () => ({
 
 function IncidentReportForm() {
   const [values, setValues] = useState(createInitialValues)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleChange = (event) => {
     const { name, value } = event.target
-    setValues((current) => ({ ...current, [name]: value }))
+
+    setValues((current) => ({
+      ...current,
+      [name]: value,
+    }))
+
+    setMessage('')
+    setError('')
   }
 
   const canSubmit = REQUIRED_FIELDS.every(
     (field) => values[field].trim() !== '',
   )
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    // The button is disabled in this state, but keyboard and native form
-    // submission paths can still reach here. Exit rather than send junk.
-    if (!canSubmit) return
 
-    // status, created_at and updated_at are server-owned and never sent.
+    if (!canSubmit || submitting) return
+
     const payload = {
       truck_id: values.truck_id.trim(),
       location: values.location.trim(),
       description: values.description.trim(),
     }
 
-    // TIR-32 stops here. The POST lands in a later ticket.
-    console.log('Incident report payload:', payload)
+    setSubmitting(true)
+    setMessage('')
+    setError('')
+
+    try {
+      const response = await fetch(
+        'http://127.0.0.1:8000/api/incidents/',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        },
+      )
+
+      const data = await response.json()
+
+      console.log('API response:', data)
+
+      if (!response.ok) {
+        setError(data.message || 'Failed to create incident.')
+        return
+      }
+
+      setMessage('Incident reported successfully!')
+
+      // Clear the form after successful submission
+      setValues(createInitialValues())
+    } catch (error) {
+      console.error('Error connecting to the API:', error)
+
+      setError(
+        'Could not connect to the server. Make sure Django is running.',
+      )
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
     <div className="incident-form-page">
       <form className="incident-form" onSubmit={handleSubmit}>
         <header className="incident-form-header">
-          <h1 className="incident-form-title">Report an incident</h1>
+          <h1 className="incident-form-title">
+            Report an incident
+          </h1>
+
           <p className="incident-form-subtitle">
             Fill in what you can. A dispatcher will pick this up.
           </p>
         </header>
 
         <div className="incident-form-field">
-          <label className="incident-form-label" htmlFor="truck_id">
+          <label
+            className="incident-form-label"
+            htmlFor="truck_id"
+          >
             Truck ID
-            <span className="incident-form-required" aria-hidden="true">
+            <span
+              className="incident-form-required"
+              aria-hidden="true"
+            >
               *
             </span>
           </label>
+
           <input
             className="incident-form-input"
             id="truck_id"
@@ -70,12 +123,19 @@ function IncidentReportForm() {
         </div>
 
         <div className="incident-form-field">
-          <label className="incident-form-label" htmlFor="location">
+          <label
+            className="incident-form-label"
+            htmlFor="location"
+          >
             Location
-            <span className="incident-form-required" aria-hidden="true">
+            <span
+              className="incident-form-required"
+              aria-hidden="true"
+            >
               *
             </span>
           </label>
+
           <input
             className="incident-form-input"
             id="location"
@@ -87,18 +147,29 @@ function IncidentReportForm() {
             aria-describedby="location_hint"
             required
           />
-          <p className="incident-form-hint" id="location_hint">
+
+          <p
+            className="incident-form-hint"
+            id="location_hint"
+          >
             Road, exit, landmark, or nearest town.
           </p>
         </div>
 
         <div className="incident-form-field">
-          <label className="incident-form-label" htmlFor="description">
+          <label
+            className="incident-form-label"
+            htmlFor="description"
+          >
             What happened
-            <span className="incident-form-required" aria-hidden="true">
+            <span
+              className="incident-form-required"
+              aria-hidden="true"
+            >
               *
             </span>
           </label>
+
           <textarea
             className="incident-form-input incident-form-textarea"
             id="description"
@@ -113,10 +184,22 @@ function IncidentReportForm() {
         <button
           className="incident-form-submit"
           type="submit"
-          disabled={!canSubmit}
+          disabled={!canSubmit || submitting}
         >
-          Submit report
+          {submitting ? 'Submitting...' : 'Submit report'}
         </button>
+
+        {message && (
+          <p className="incident-form-success">
+            {message}
+          </p>
+        )}
+
+        {error && (
+          <p className="incident-form-error">
+            {error}
+          </p>
+        )}
       </form>
     </div>
   )

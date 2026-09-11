@@ -5,6 +5,13 @@ from django.views.decorators.csrf import csrf_exempt
 
 from .models import Incident
 
+from django.http import JsonResponse
+
+def home(request):
+    return JsonResponse({
+        "message": "Django API is running"
+    })
+
 
 field_names = {
     "truck_id": "Truck ID",
@@ -125,4 +132,36 @@ def create_incident(request):
             },
         },
         status=201,
+    )
+def get_incidents(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "message": "Only GET requests are allowed"
+            },
+            status=405,
+        )
+
+    incidents = Incident.objects.all().order_by("-created_at")
+
+    incidents_data = []
+
+    for incident in incidents:
+        incidents_data.append(
+            {
+                "id": incident.id,
+                "truck_id": incident.truck_id,
+                "location": incident.location,
+                "description": incident.description,
+                "status": incident.status,
+                "created_at": incident.created_at.isoformat(),
+                "updated_at": incident.updated_at.isoformat(),
+            }
+        )
+
+    return JsonResponse(
+        {
+            "incidents": incidents_data
+        },
+        status=200,
     )

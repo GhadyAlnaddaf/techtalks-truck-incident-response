@@ -1,24 +1,39 @@
+import { useEffect, useState } from "react";
 import IncidentList from "./IncidentList";
 
 function DispatcherDashboard() {
-  const incidents = [
-    {
-      id: 1,
-      truck_id: "TRUCK-001",
-      location: "Saida Highway",
-      description: "Truck was involved in a road accident.",
-      occurred_at: "2026-09-09T14:30:00",
-      status: "Pending",
-    },
-    {
-      id: 2,
-      truck_id: "TRUCK-002",
-      location: "Beirut",
-      description: "Truck experienced a mechanical breakdown.",
-      occurred_at: "2026-09-09T15:00:00",
-      status: "Pending",
-    },
-  ];
+  const [incidents, setIncidents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      try {
+        const response = await fetch(
+          "http://127.0.0.1:8000/api/incidents/list/"
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          setError(data.message || "Failed to retrieve incidents.");
+          return;
+        }
+
+        setIncidents(data.incidents);
+      } catch (error) {
+        console.error("Error connecting to the API:", error);
+
+        setError(
+          "Could not connect to the server. Make sure Django is running."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIncidents();
+  }, []);
 
   return (
     <div className="dashboard">
@@ -30,7 +45,13 @@ function DispatcherDashboard() {
       <section className="incident-section">
         <h2>Reported Incidents</h2>
 
-        <IncidentList incidents={incidents} />
+        {loading && <p>Loading incidents...</p>}
+
+        {error && <p>{error}</p>}
+
+        {!loading && !error && (
+          <IncidentList incidents={incidents} />
+        )}
       </section>
     </div>
   );
