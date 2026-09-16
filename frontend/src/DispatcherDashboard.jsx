@@ -39,18 +39,38 @@ function DispatcherDashboard() {
     <div className="dashboard">
       <div className="dashboard-header">
         <h1>Dispatcher Dashboard</h1>
-        <p>Monitor reported truck incidents.</p>
+        <p>Monitor and manage reported truck incidents.</p>
       </div>
 
       <section className="incident-section">
-        <h2>Reported Incidents</h2>
+        <div className="section-header">
+          <div>
+            <h2>Incidents</h2>
+            <p>Select an incident to view its full details.</p>
+          </div>
 
-        {loading && <p>Loading incidents...</p>}
+          <span className="incident-count">
+            {incidents.length} incident{incidents.length !== 1 ? "s" : ""}
+          </span>
+        </div>
 
-        {error && <p>{error}</p>}
+        {loading && (
+          <div className="message-box">
+            <p>Loading incidents...</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="message-box error-message">
+            <p>{error}</p>
+          </div>
+        )}
 
         {!loading && !error && (
-          <IncidentList incidents={incidents} />
+          <IncidentList
+            incidents={incidents}
+            setIncidents={setIncidents}
+          />
         )}
       </section>
     </div>
