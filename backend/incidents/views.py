@@ -171,7 +171,7 @@ def get_incidents(request):
         status=200,
     )
 
-def get_incident(request,incident_id):
+def get_incident(request, incident_id):
 
     if request.method != "GET":
         return JsonResponse(
@@ -198,7 +198,7 @@ def get_incident(request,incident_id):
         status=200,
     )
 @csrf_exempt
-def status_update(request,incident_id):
+def status_update(request, incident_id):
     if request.method != "PATCH":
         return JsonResponse(
             {
