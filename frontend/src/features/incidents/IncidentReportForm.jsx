@@ -1,7 +1,28 @@
 import { useState } from 'react'
 import './IncidentReportForm.css'
 
+/** In DOM order, so the first invalid one found is the one to focus. */
 const REQUIRED_FIELDS = ['truck_id', 'location', 'description']
+
+/**
+ * Mirrors the backend Incident model: truck_id and location are
+ * CharField(max_length=255), description is a TextField with no limit.
+ */
+const FIELD_RULES = {
+  truck_id: {
+    label: 'Truck ID',
+    requiredMessage: 'Enter the truck ID',
+    maxLength: 255,
+  },
+  location: {
+    label: 'Location',
+    requiredMessage: 'Enter the location',
+    maxLength: 255,
+  },
+  description: {
+    requiredMessage: 'Describe what happened',
+  },
+}
 
 const createInitialValues = () => ({
   truck_id: '',
@@ -9,11 +30,73 @@ const createInitialValues = () => ({
   description: '',
 })
 
+/** Returns the message to show for a field, or '' when it is valid. */
+const validateField = (name, value) => {
+  const { label, requiredMessage, maxLength } = FIELD_RULES[name]
+  const trimmed = value.trim()
+
+  if (trimmed === '') return requiredMessage
+
+  // Spreading counts code points, which is what Python's len() counts on the
+  // server. String.length counts UTF-16 units, so an emoji would count twice.
+  if (maxLength && [...trimmed].length > maxLength) {
+    return `${label} must be ${maxLength} characters or fewer`
+  }
+
+  return ''
+}
+
+/**
+ * Validates every field. The result has the same shape as the output of
+ * mapApiErrorsToFields: field name -> message, invalid fields only.
+ */
+const validateAll = (values) => {
+  const errors = {}
+
+  for (const name of REQUIRED_FIELDS) {
+    const message = validateField(name, values[name])
+    if (message) errors[name] = message
+  }
+
+  return errors
+}
+
+/**
+ * Always rendered, so its line of height is reserved and a message appearing
+ * never pushes the fields below it down.
+ */
+function FieldError({ id, message }) {
+  return (
+    <p className="incident-form-field-error" id={id}>
+      {message && (
+        <>
+          <span className="incident-form-visually-hidden">Error: </span>
+          {message}
+        </>
+      )}
+    </p>
+  )
+}
+
 function IncidentReportForm() {
   const [values, setValues] = useState(createInitialValues)
+  // Field name -> message, invalid fields only. Same shape as the output of
+  // mapApiErrorsToFields, so API field errors can be dropped straight in.
+  const [fieldErrors, setFieldErrors] = useState({})
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  const setFieldError = (name, fieldMessage) => {
+    setFieldErrors((current) => {
+      if (fieldMessage) return { ...current, [name]: fieldMessage }
+      if (!(name in current)) return current
+
+      const next = { ...current }
+      delete next[name]
+      return next
+    })
+  }
 
   const handleChange = (event) => {
     const { name, value } = event.target
@@ -23,18 +106,37 @@ function IncidentReportForm() {
       [name]: value,
     }))
 
+    // A field already showing an error re-checks on every keystroke, so the
+    // message clears as soon as it is fixed. New errors wait for blur.
+    if (fieldErrors[name]) {
+      setFieldError(name, validateField(name, value))
+    }
+
     setMessage('')
     setError('')
   }
 
-  const canSubmit = REQUIRED_FIELDS.every(
-    (field) => values[field].trim() !== '',
-  )
+  const handleBlur = (event) => {
+    const { name, value } = event.target
+    setFieldError(name, validateField(name, value))
+  }
 
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    if (!canSubmit || submitting) return
+    if (submitting) return
+
+    setMessage('')
+    setError('')
+
+    const errors = validateAll(values)
+    setFieldErrors(errors)
+
+    const firstInvalid = REQUIRED_FIELDS.find((name) => errors[name])
+    if (firstInvalid) {
+      event.currentTarget.elements[firstInvalid].focus()
+      return
+    }
 
     const payload = {
       truck_id: values.truck_id.trim(),
@@ -43,8 +145,6 @@ function IncidentReportForm() {
     }
 
     setSubmitting(true)
-    setMessage('')
-    setError('')
 
     try {
       const response = await fetch(
@@ -58,12 +158,18 @@ function IncidentReportForm() {
         },
       )
 
-      const data = await response.json()
+      // An HTML error page (a Django 500, say) is not JSON. That must not
+      // fall through to the catch below and be reported as "could not
+      // connect" when the server did answer.
+      const data = await response.json().catch(() => null)
 
       console.log('API response:', data)
 
       if (!response.ok) {
-        setError(data.message || 'Failed to create incident.')
+        // API seam: the backend returns { message }, not field-keyed errors.
+        // Once it does, show them under the fields instead with
+        // setFieldErrors(mapApiErrorsToFields(data)).
+        setError(data?.message || 'Failed to create incident.')
         return
       }
 
@@ -71,6 +177,7 @@ function IncidentReportForm() {
 
       // Clear the form after successful submission
       setValues(createInitialValues())
+      setFieldErrors({})
     } catch (error) {
       console.error('Error connecting to the API:', error)
 
@@ -84,7 +191,11 @@ function IncidentReportForm() {
 
   return (
     <div className="incident-form-page">
-      <form className="incident-form" onSubmit={handleSubmit}>
+      <form
+        className="incident-form"
+        onSubmit={handleSubmit}
+        noValidate
+      >
         <header className="incident-form-header">
           <h1 className="incident-form-title">
             Report an incident
@@ -116,9 +227,18 @@ function IncidentReportForm() {
             type="text"
             value={values.truck_id}
             onChange={handleChange}
-            maxLength={255}
+            onBlur={handleBlur}
             autoComplete="off"
+            aria-invalid={fieldErrors.truck_id ? 'true' : undefined}
+            aria-describedby={
+              fieldErrors.truck_id ? 'truck_id_error' : undefined
+            }
             required
+          />
+
+          <FieldError
+            id="truck_id_error"
+            message={fieldErrors.truck_id}
           />
         </div>
 
@@ -143,8 +263,13 @@ function IncidentReportForm() {
             type="text"
             value={values.location}
             onChange={handleChange}
-            maxLength={255}
-            aria-describedby="location_hint"
+            onBlur={handleBlur}
+            aria-invalid={fieldErrors.location ? 'true' : undefined}
+            aria-describedby={
+              fieldErrors.location
+                ? 'location_hint location_error'
+                : 'location_hint'
+            }
             required
           />
 
@@ -154,6 +279,11 @@ function IncidentReportForm() {
           >
             Road, exit, landmark, or nearest town.
           </p>
+
+          <FieldError
+            id="location_error"
+            message={fieldErrors.location}
+          />
         </div>
 
         <div className="incident-form-field">
@@ -177,14 +307,23 @@ function IncidentReportForm() {
             rows="5"
             value={values.description}
             onChange={handleChange}
+            onBlur={handleBlur}
+            aria-invalid={fieldErrors.description ? 'true' : undefined}
+            aria-describedby={
+              fieldErrors.description ? 'description_error' : undefined
+            }
             required
+          />
+
+          <FieldError
+            id="description_error"
+            message={fieldErrors.description}
           />
         </div>
 
         <button
           className="incident-form-submit"
           type="submit"
-          disabled={!canSubmit || submitting}
         >
           {submitting ? 'Submitting...' : 'Submit report'}
         </button>
@@ -196,7 +335,7 @@ function IncidentReportForm() {
         )}
 
         {error && (
-          <p className="incident-form-error">
+          <p className="incident-form-error" role="alert">
             {error}
           </p>
         )}

@@ -7,6 +7,8 @@
   /* Text on the accent-filled submit button. The accent is dark purple in the
      light scheme and pale purple in the dark one, so the label has to flip. */
   /*--incident-submit-fg: #fff;*/
+  /* Field error text and invalid-input borders. */
+  --incident-error: #b3261e;
 
   box-sizing: border-box;
   width: 100%;
@@ -20,6 +22,14 @@
 @media (prefers-color-scheme: dark) {
   .incident-form-page {
     --incident-submit-fg: #16171d;
+  }
+}
+
+/* light-dark() follows the colour scheme the page is actually rendered in,
+   not just the OS preference, so the pale red never lands on a white page. */
+@supports (color: light-dark(#000, #fff)) {
+  .incident-form-page {
+    --incident-error: light-dark(#b3261e, #fca5a5);
   }
 }
 
@@ -110,6 +120,37 @@
   min-height: 120px;
 }
 
+/* After :hover and :focus-visible, so the error border wins on equal
+   specificity. The second pixel is drawn inside, so the input keeps its size;
+   with the message below it, the error does not rely on colour alone. */
+.incident-form-input[aria-invalid='true'] {
+  border-color: var(--incident-error);
+  box-shadow: inset 0 0 0 1px var(--incident-error);
+}
+
+.incident-form-field-error {
+  /* Always rendered with one line reserved, so a message appearing never
+     pushes the fields below it down. Whole pixels, so the empty slot and a
+     line of text come out exactly the same height. */
+  min-height: 20px;
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 600;
+  color: var(--incident-error);
+}
+
+.incident-form-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 .incident-form-submit {
   min-height: 52px;
   margin-top: 4px;
@@ -140,6 +181,12 @@
   background: var(--accent-bg);
   color: var(--text);
   cursor: not-allowed;
+}
+
+/* Server and network failures, shown below the button. */
+.incident-form-error {
+  font-weight: 600;
+  color: var(--incident-error);
 }
 
 @media (min-width: 480px) {

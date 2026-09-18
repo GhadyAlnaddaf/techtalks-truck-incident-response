@@ -1,78 +1,671 @@
+/* =========================
+   MAIN DASHBOARD
+   ========================= */
+
 .dashboard {
   min-height: 100vh;
-  padding: 40px;
-  background-color: #f5f7fa;
+  padding: 35px 45px;
+  background-color: #000000;
   font-family: Arial, sans-serif;
+  color: #ffffff;
 }
 
+
+/* =========================
+   DASHBOARD HEADER
+   ========================= */
+
 .dashboard-header {
-  margin-bottom: 30px;
+  margin-bottom: 35px;
 }
 
 .dashboard-header h1 {
   margin: 0 0 8px;
-  font-size: 32px;
+  font-size: 30px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .dashboard-header p {
   margin: 0;
-  color: #666;
+  color: #bdbdbd;
+  font-size: 15px;
 }
 
-.incident-section h2 {
-  margin-bottom: 20px;
-}
 
-.incident-list {
-  display: grid;
-  gap: 16px;
-  max-width: 900px;
-}
+/* =========================
+   SECTION HEADER
+   ========================= */
 
-.incident-card {
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-.incident-card-header {
+.section-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  align-items: flex-end;
+  margin-bottom: 18px;
 }
 
-.incident-card-header h3 {
+.section-header h2 {
   margin: 0;
-  font-size: 20px;
+  color: #ffffff;
+  font-size: 21px;
 }
 
-.incident-card p {
-  margin: 8px 0;
-  color: #444;
+.section-header p {
+  margin: 6px 0 0;
+  color: #999999;
+  font-size: 14px;
 }
 
-.incident-card strong {
-  color: #222;
+
+/* Number of incidents */
+
+.incident-count {
+  padding: 8px 15px;
+  border-radius: 20px;
+  background-color: #172554;
+  border: 1px solid #2563eb;
+  color: #60a5fa;
+  font-size: 13px;
+  font-weight: 700;
 }
+
+
+/* =========================
+   INCIDENT TABLE
+   ========================= */
+
+.incident-table-container {
+  width: 100%;
+  background-color: #111111;
+  border: 1px solid #292929;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.incident-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+
+/* Table header */
+
+.incident-table thead {
+  background-color: #151515;
+}
+
+.incident-table th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #999999;
+  border-bottom: 1px solid #292929;
+}
+
+
+/* Table cells */
+
+.incident-table td {
+  padding: 17px 20px;
+  font-size: 14px;
+  color: #ffffff;
+  border-bottom: 1px solid #222222;
+}
+
+
+/* Table rows */
+
+.incident-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.incident-table tbody tr:hover {
+  background-color: #191919;
+}
+
+.incident-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+
+/* Selected incident */
+
+.incident-table tbody tr.selected-row {
+  background-color: #111d38;
+}
+
+.incident-table tbody tr.selected-row td:first-child {
+  border-left: 4px solid #3b82f6;
+}
+
+
+/* Incident number */
+
+.incident-table td:first-child strong {
+  color: #60a5fa;
+  font-weight: 700;
+}
+
+
+/* =========================
+   STATUS BADGES
+   ========================= */
 
 .status {
-  display: inline-block;
-  padding: 5px 10px;
-  border-radius: 15px;
-  background-color: #fff3cd;
-  color: #856404;
-  font-size: 14px;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 75px;
+
+  padding: 6px 13px;
+
+  border-radius: 20px;
+
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
 }
 
-.no-incidents {
-  padding: 30px;
-  background-color: white;
-  border-radius: 10px;
+
+/* -------------------------
+   REPORTED
+   ------------------------- */
+
+.status-reported {
+  background-color: #422006;
+  color: #fbbf24;
+  border: 1px solid #f59e0b;
+}
+
+
+/* -------------------------
+   PENDING
+   ------------------------- */
+
+.status-pending {
+  background-color: #431407;
+  color: #fb923c;
+  border: 1px solid #f97316;
+}
+
+
+/* -------------------------
+   IN PROGRESS
+   ------------------------- */
+
+.status-in-progress {
+  background-color: #172554;
+  color: #60a5fa;
+  border: 1px solid #2563eb;
+}
+
+
+/* -------------------------
+   RESOLVED
+   ------------------------- */
+
+.status-resolved {
+  background-color: #052e16;
+  color: #4ade80;
+  border: 1px solid #22c55e;
+}
+
+
+/* -------------------------
+   CANCELLED
+   ------------------------- */
+
+.status-cancelled {
+  background-color: #450a0a;
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+
+
+/* =========================
+   INCIDENT DETAILS
+   ========================= */
+
+.incident-details {
+  margin-top: 25px;
+  padding: 28px;
+
+  background-color: #111111;
+
+  border: 1px solid #292929;
+  border-radius: 12px;
+
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+
+/* Details header */
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  padding-bottom: 22px;
+  margin-bottom: 25px;
+
+  border-bottom: 1px solid #292929;
+}
+
+.details-label {
+  display: block;
+
+  margin-bottom: 6px;
+
+  color: #777777;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.details-header h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 24px;
+}
+
+
+/* =========================
+   CLOSE BUTTON
+   ========================= */
+
+.close-button {
+  width: 35px;
+  height: 35px;
+
+  border: 1px solid #444444;
+  border-radius: 7px;
+
+  background-color: #1a1a1a;
+
+  color: #ffffff;
+
+  font-size: 22px;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.close-button:hover {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+
+/* =========================
+   DETAILS GRID
+   ========================= */
+
+.details-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 14px;
+
+  margin-bottom: 28px;
+}
+
+.detail-item {
+  padding: 17px;
+
+  background-color: #181818;
+
+  border: 1px solid #292929;
+  border-radius: 8px;
+}
+
+.detail-item span:first-child {
+  display: block;
+
+  margin-bottom: 7px;
+
+  color: #888888;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.detail-item strong {
+  color: #ffffff;
+
+  font-size: 14px;
+}
+
+.full-width {
+  grid-column: 1 / -1;
+}
+
+
+/* =========================
+   CONTROL SECTIONS
+   ========================= */
+
+.control-section {
+  margin-top: 20px;
+
+  padding: 22px 0;
+
+  border-top: 1px solid #292929;
+}
+
+.control-section h3 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-size: 17px;
+}
+
+.control-section p {
+  margin: 6px 0 16px;
+
+  color: #999999;
+
+  font-size: 13px;
+}
+
+
+/* =========================
+   SELECT + BUTTON ROW
+   ========================= */
+
+.control-row {
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+}
+
+
+/* Dropdown */
+
+.control-row select {
+  min-width: 250px;
+
+  height: 43px;
+
+  padding: 0 12px;
+
+  background-color: #181818;
+
+  border: 1px solid #444444;
+
+  border-radius: 7px;
+
+  color: #ffffff;
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+.control-row select:hover {
+  border-color: #666666;
+}
+
+.control-row select:focus {
+  outline: none;
+
+  border-color: #8b5cf6;
+
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+}
+
+
+/* =========================
+   PRIMARY BUTTON
+   ========================= */
+
+.primary-button {
+  height: 43px;
+
+  padding: 0 20px;
+
+  border: none;
+
+  border-radius: 7px;
+
+  background-color: #7c3aed;
+
+  color: #ffffff;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.primary-button:hover {
+  background-color: #8b5cf6;
+
+  transform: translateY(-1px);
+}
+
+.primary-button:active {
+  transform: translateY(0);
+}
+
+
+/* =========================
+   CURRENT ASSIGNMENT
+   ========================= */
+
+.current-assignment {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 13px;
+
+  padding: 12px 15px;
+
+  background-color: #1e1b4b;
+
+  border: 1px solid #6d28d9;
+
+  border-radius: 7px;
+
+  font-size: 13px;
+}
+
+.current-assignment span {
+  color: #c4b5fd;
+}
+
+.current-assignment strong {
+  color: #ffffff;
+}
+
+
+/* =========================
+   SUCCESS MESSAGE
+   ========================= */
+
+.success-message {
+  margin-top: 18px;
+
+  padding: 13px 15px;
+
+  background-color: #052e16;
+
+  border: 1px solid #22c55e;
+
+  border-radius: 7px;
+
+  color: #4ade80;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+/* =========================
+   ERROR MESSAGE
+   ========================= */
+
+.error-message {
+  margin-top: 18px;
+
+  padding: 13px 15px;
+
+  background-color: #450a0a;
+
+  border: 1px solid #ef4444;
+
+  border-radius: 7px;
+
+  color: #f87171;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+/* =========================
+   LOADING MESSAGE
+   ========================= */
+
+.message-box {
+  padding: 40px;
+
   text-align: center;
-  color: #666;
-  border: 1px solid #ddd;
+
+  background-color: #111111;
+
+  border: 1px solid #292929;
+
+  border-radius: 12px;
+
+  color: #999999;
+}
+
+.message-box p {
+  margin: 0;
+}
+
+
+/* =========================
+   NO INCIDENTS
+   ========================= */
+
+.no-incidents {
+  padding: 45px;
+
+  text-align: center;
+
+  background-color: #111111;
+
+  border: 1px solid #292929;
+
+  border-radius: 12px;
+
+  color: #999999;
+}
+
+.no-incidents p {
+  margin: 0;
+}
+
+
+/* =========================
+   RESPONSIVE - TABLET
+   ========================= */
+
+@media (max-width: 900px) {
+
+  .dashboard {
+    padding: 25px;
+  }
+
+  .incident-table-container {
+    overflow-x: auto;
+  }
+
+  .incident-table {
+    min-width: 700px;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .full-width {
+    grid-column: auto;
+  }
+
+}
+
+
+/* =========================
+   RESPONSIVE - MOBILE
+   ========================= */
+
+@media (max-width: 600px) {
+
+  .dashboard {
+    padding: 18px;
+  }
+
+  .dashboard-header h1 {
+    font-size: 25px;
+  }
+
+  .section-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 12px;
+  }
+
+  .incident-details {
+    padding: 20px;
+  }
+
+  .control-row {
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .control-row select {
+    width: 100%;
+  }
+
+  .primary-button {
+    width: 100%;
+  }
+
+  .current-assignment {
+    flex-direction: column;
+
+    align-items: flex-start;
+  }
+
 }
