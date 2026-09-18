@@ -1,0 +1,25 @@
+/* Layout only. Colours, type and spacing come from the dashboard styles in
+   App.css, so this panel keeps looking like the rest of the details view. */
+
+/* The grid styles assume no default list margins. */
+.incident-details-list {
+  margin-top: 0;
+}
+
+.incident-details-list dt,
+.incident-details-list dd {
+  margin: 0;
+}
+
+/* Driver-submitted text: keep the line breaks they typed, and break a long
+   unbroken run of characters instead of letting it widen the panel. */
+.incident-details-description {
+  display: block;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.incident-details-message button {
+  margin-top: 14px;
+}

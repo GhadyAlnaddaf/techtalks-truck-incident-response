@@ -1,5 +1,7 @@
 import { useState } from "react";
 
+import IncidentDetails from "./features/incidents/IncidentDetails";
+
 function IncidentList({ incidents, setIncidents }) {
   const [selectedIncident, setSelectedIncident] = useState(null);
 
@@ -170,45 +172,7 @@ function IncidentList({ incidents, setIncidents }) {
 
           {/* INCIDENT INFORMATION */}
 
-          <div className="details-grid">
-
-            <div className="detail-item">
-              <span>Incident ID</span>
-              <strong>#{selectedIncident.id}</strong>
-            </div>
-
-            <div className="detail-item">
-              <span>Truck ID</span>
-              <strong>{selectedIncident.truck_id}</strong>
-            </div>
-
-            <div className="detail-item">
-              <span>Location</span>
-              <strong>{selectedIncident.location}</strong>
-            </div>
-
-            <div className="detail-item">
-              <span>Current Status</span>
-              <strong>
-                <span className="status">
-                  {selectedIncident.status}
-                </span>
-              </strong>
-            </div>
-
-            <div className="detail-item">
-              <span>Created At</span>
-              <strong>{selectedIncident.created_at}</strong>
-            </div>
-
-            <div className="detail-item full-width">
-              <span>Description</span>
-              <strong>
-                {selectedIncident.description || "No description provided."}
-              </strong>
-            </div>
-
-          </div>
+          <IncidentDetails incidentId={selectedIncident.id} />
 
           {/* ASSISTANCE */}
 
