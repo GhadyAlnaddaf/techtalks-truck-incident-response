@@ -2,8 +2,7 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
-from .models import Incident
+from .models import Incident, AssistanceContact
 
 
 def home(request):
@@ -175,11 +174,11 @@ def get_incident(request, incident_id):
 
     if request.method != "GET":
         return JsonResponse(
-        {"message": "Only GET requests are allowed"},
-        status=405,
+            {"message": "Only GET requests are allowed"},
+            status=405,
         )
     try:
-        incident=Incident.objects.get(id=incident_id)
+        incident = Incident.objects.get(id=incident_id)
     except Incident.DoesNotExist:
         return JsonResponse(
             {"message": "Incident ID not found"},
@@ -207,11 +206,11 @@ def status_update(request, incident_id):
             status=405,
         )
     try:
-        data=json.loads(request.body)
+        data = json.loads(request.body)
     except json.JSONDecodeError:
         return JsonResponse(
             {
-                "message":"Invalid JSON"
+                "message": "Invalid JSON"
             },
             status=400,
         )
@@ -221,18 +220,18 @@ def status_update(request, incident_id):
             status=400,
         )
 
-    if ("status" not in data ):
+    if "status" not in data:
         return JsonResponse(
             {
-                "message":"Status is missing"
+                "message": "Status is missing"
             },
             status=400,
         )
-    new_status=data["status"]
-    if not isinstance(new_status,str):
+    new_status = data["status"]
+    if not isinstance(new_status, str):
         return JsonResponse(
             {
-                "message":"Status must be a string"
+                "message": "Status must be a string"
             },
             status=400,
         )
@@ -270,6 +269,79 @@ def status_update(request, incident_id):
                 "created_at": incident.created_at.isoformat(),
                 "updated_at": incident.updated_at.isoformat(),
             },
+        },
+        status=200,
+    )
+
+@csrf_exempt
+def assistance_update(request, incident_id):
+    if request.method != "PATCH":
+        return JsonResponse(
+            {
+                "message": "Only PATCH requests are allowed"
+            },
+            status=405,
+        )
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {
+                "message": "Invalid JSON"
+            },
+            status=400,
+        )
+
+    if not isinstance(data, dict):
+        return JsonResponse(
+            {"message": "JSON data must be an object"},
+            status=400,
+        )
+
+    if "assistance_contact_id" not in data:
+        return JsonResponse(
+            {
+                "message": "Contact ID is missing"
+            },
+            status=400,
+        )
+
+    assistance_contact_id = data["assistance_contact_id"]
+    if not isinstance(assistance_contact_id, int) or isinstance(assistance_contact_id, bool):
+        return JsonResponse(
+            {
+                "message": "Contact ID must be an integer"
+            },
+            status=400,
+    )
+
+    try:
+        incident = Incident.objects.get(id=incident_id)
+    except Incident.DoesNotExist:
+        return JsonResponse(
+            {
+                "message": "Incident ID not found"
+            },
+            status=404,
+        )
+
+    try:
+        contact = AssistanceContact.objects.get(id=assistance_contact_id)
+    except AssistanceContact.DoesNotExist:
+        return JsonResponse(
+            {
+                "message": "Assistance contact not found"
+            },
+            status=404,
+        )
+
+    incident.assigned_assistance_contact = contact
+    incident.save()
+
+    return JsonResponse(
+        {
+            "message": "Assistance assigned successfully"
         },
         status=200,
     )

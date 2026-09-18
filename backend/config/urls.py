@@ -16,12 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from incidents.views import create_incident, get_incidents, get_incident, status_update
+from incidents.views import create_incident, get_incidents, get_incident, status_update, assistance_update
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/incidents/", create_incident),
     path("api/incidents/list/", get_incidents),
-    path("api/incidents/<int:incident_id>/",get_incident),
+    path("api/incidents/<int:incident_id>/", get_incident),
     path("api/incidents/<int:incident_id>/status/", status_update),
+    path("api/incidents/<int:incident_id>/assistance/", assistance_update),
 ]
