@@ -2,7 +2,17 @@ import json
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Incident, AssistanceContact
+
+from .models import AssistanceContact, Incident
+
+
+VALID_STATUSES = [
+    "Pending",
+    "Assigned",
+    "On the way",
+    "In progress",
+    "Resolved",
+]
 
 
 def home(request):
@@ -11,18 +21,34 @@ def home(request):
     })
 
 
-field_names = {
-    "truck_id": "Truck ID",
-    "location": "Location",
-    "description": "Description",
-}
-VALID_STATUSES = [
-    "Pending",
-    "Assigned",
-    "On the way",
-    "In progress",
-    "Resolved",
-]
+def incident_to_dict(incident):
+    """
+    Convert an Incident model object into the JSON structure
+    returned by the API.
+    """
+
+    assistance_contact = incident.assigned_assistance_contact
+
+    return {
+        "id": incident.id,
+        "truck_id": incident.truck_id,
+        "location": incident.location,
+        "description": incident.description,
+        "status": incident.status,
+        "created_at": incident.created_at.isoformat(),
+        "updated_at": incident.updated_at.isoformat(),
+        "assigned_assistance_contact": (
+            {
+                "id": assistance_contact.id,
+                "name": assistance_contact.name,
+                "phone": assistance_contact.phone,
+                "email": assistance_contact.email,
+            }
+            if assistance_contact
+            else None
+        ),
+    }
+
 
 @csrf_exempt
 def create_incident(request):
@@ -58,22 +84,22 @@ def create_incident(request):
         "description",
     ]
 
-    # Check that all required fields exist
+    # Check required fields
     for key in required_fields:
         if key not in data:
             return JsonResponse(
                 {
-                    "message": f"{field_names[key]} is missing"
+                    "message": f"{key.replace('_', ' ').title()} is missing"
                 },
                 status=400,
             )
 
-    # Check that all required fields are strings and not empty
+    # Check fields are strings and not empty
     for key in required_fields:
         if not isinstance(data[key], str):
             return JsonResponse(
                 {
-                    "message": f"{field_names[key]} must be a string"
+                    "message": f"{key.replace('_', ' ').title()} must be a string"
                 },
                 status=400,
             )
@@ -81,12 +107,11 @@ def create_incident(request):
         if data[key].strip() == "":
             return JsonResponse(
                 {
-                    "message": f"{field_names[key]} cannot be empty"
+                    "message": f"{key.replace('_', ' ').title()} cannot be empty"
                 },
                 status=400,
             )
 
-    # Clean whitespace
     truck_id = data["truck_id"].strip()
     location = data["location"].strip()
     description = data["description"].strip()
@@ -108,7 +133,6 @@ def create_incident(request):
             status=400,
         )
 
-    # Create the incident
     incident = Incident.objects.create(
         truck_id=truck_id,
         location=location,
@@ -125,18 +149,12 @@ def create_incident(request):
     return JsonResponse(
         {
             "message": "Incident created successfully",
-            "incident": {
-                "id": incident.id,
-                "truck_id": incident.truck_id,
-                "location": incident.location,
-                "description": incident.description,
-                "status": incident.status,
-                "created_at": incident.created_at.isoformat(),
-                "updated_at": incident.updated_at.isoformat(),
-            },
+            "incident": incident_to_dict(incident),
         },
         status=201,
     )
+
+
 def get_incidents(request):
     if request.method != "GET":
         return JsonResponse(
@@ -148,20 +166,10 @@ def get_incidents(request):
 
     incidents = Incident.objects.all().order_by("-created_at")
 
-    incidents_data = []
-
-    for incident in incidents:
-        incidents_data.append(
-            {
-                "id": incident.id,
-                "truck_id": incident.truck_id,
-                "location": incident.location,
-                "description": incident.description,
-                "status": incident.status,
-                "created_at": incident.created_at.isoformat(),
-                "updated_at": incident.updated_at.isoformat(),
-            }
-        )
+    incidents_data = [
+        incident_to_dict(incident)
+        for incident in incidents
+    ]
 
     return JsonResponse(
         {
@@ -170,32 +178,32 @@ def get_incidents(request):
         status=200,
     )
 
-def get_incident(request, incident_id):
 
+def get_incident(request, incident_id):
     if request.method != "GET":
         return JsonResponse(
-            {"message": "Only GET requests are allowed"},
+            {
+                "message": "Only GET requests are allowed"
+            },
             status=405,
         )
+
     try:
         incident = Incident.objects.get(id=incident_id)
     except Incident.DoesNotExist:
         return JsonResponse(
-            {"message": "Incident ID not found"},
+            {
+                "message": "Incident ID not found"
+            },
             status=404,
         )
+
     return JsonResponse(
-        {
-            "id": incident.id,
-            "truck_id": incident.truck_id,
-            "location": incident.location,
-            "description": incident.description,
-            "status": incident.status,
-            "created_at": incident.created_at.isoformat(),
-            "updated_at": incident.updated_at.isoformat(),
-        },
+        incident_to_dict(incident),
         status=200,
     )
+
+
 @csrf_exempt
 def status_update(request, incident_id):
     if request.method != "PATCH":
@@ -205,6 +213,7 @@ def status_update(request, incident_id):
             },
             status=405,
         )
+
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
@@ -214,9 +223,12 @@ def status_update(request, incident_id):
             },
             status=400,
         )
+
     if not isinstance(data, dict):
         return JsonResponse(
-            {"message": "JSON data must be an object"},
+            {
+                "message": "JSON data must be an object"
+            },
             status=400,
         )
 
@@ -227,7 +239,9 @@ def status_update(request, incident_id):
             },
             status=400,
         )
+
     new_status = data["status"]
+
     if not isinstance(new_status, str):
         return JsonResponse(
             {
@@ -260,18 +274,11 @@ def status_update(request, incident_id):
     return JsonResponse(
         {
             "message": "Incident status updated successfully",
-            "incident": {
-                "id": incident.id,
-                "truck_id": incident.truck_id,
-                "location": incident.location,
-                "description": incident.description,
-                "status": incident.status,
-                "created_at": incident.created_at.isoformat(),
-                "updated_at": incident.updated_at.isoformat(),
-            },
+            "incident": incident_to_dict(incident),
         },
         status=200,
     )
+
 
 @csrf_exempt
 def assistance_update(request, incident_id):
@@ -295,7 +302,9 @@ def assistance_update(request, incident_id):
 
     if not isinstance(data, dict):
         return JsonResponse(
-            {"message": "JSON data must be an object"},
+            {
+                "message": "JSON data must be an object"
+            },
             status=400,
         )
 
@@ -308,13 +317,23 @@ def assistance_update(request, incident_id):
         )
 
     assistance_contact_id = data["assistance_contact_id"]
-    if not isinstance(assistance_contact_id, int) or isinstance(assistance_contact_id, bool):
+
+    # DEBUG: Show what the frontend sent
+    print(
+        "ASSISTANCE ID RECEIVED:",
+        assistance_contact_id
+    )
+
+    if (
+        not isinstance(assistance_contact_id, int)
+        or isinstance(assistance_contact_id, bool)
+    ):
         return JsonResponse(
             {
                 "message": "Contact ID must be an integer"
             },
             status=400,
-    )
+        )
 
     try:
         incident = Incident.objects.get(id=incident_id)
@@ -327,7 +346,9 @@ def assistance_update(request, incident_id):
         )
 
     try:
-        contact = AssistanceContact.objects.get(id=assistance_contact_id)
+        contact = AssistanceContact.objects.get(
+            id=assistance_contact_id
+        )
     except AssistanceContact.DoesNotExist:
         return JsonResponse(
             {
@@ -336,12 +357,40 @@ def assistance_update(request, incident_id):
             status=404,
         )
 
+    # DEBUG: Show what we found
+    print(
+        "INCIDENT FOUND:",
+        incident.id
+    )
+
+    print(
+        "CONTACT FOUND:",
+        contact.id,
+        contact.name
+    )
+
+    # Assign assistance contact
     incident.assigned_assistance_contact = contact
     incident.save()
 
+    # Reload from database to verify the save
+    incident.refresh_from_db()
+
+    # DEBUG: Show what is actually stored in database
+    print(
+        "SAVED CONTACT ID:",
+        incident.assigned_assistance_contact_id
+    )
+
+    print(
+        "SAVED CONTACT:",
+        incident.assigned_assistance_contact
+    )
+
     return JsonResponse(
         {
-            "message": "Assistance assigned successfully"
+            "message": "Assistance assigned successfully",
+            "incident": incident_to_dict(incident),
         },
         status=200,
     )
