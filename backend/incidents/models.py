@@ -26,5 +26,16 @@ class Incident(models.Model):
         related_name='assigned_incidents'
     )
 
+    # Stores the contact's phone number directly on the incident row,
+    # pulled from assigned_assistance_contact whenever this is saved.
+    assistance_contact_phone = models.CharField(max_length=50, blank=True, default='')
+
+    def save(self, *args, **kwargs):
+        if self.assigned_assistance_contact:
+            self.assistance_contact_phone = self.assigned_assistance_contact.phone
+        else:
+            self.assistance_contact_phone = ''
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.truck_id} - {self.status}"
