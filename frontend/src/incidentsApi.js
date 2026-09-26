@@ -81,3 +81,16 @@ export async function assignAssistance(
 
   return data.incident;
 }
+
+/**
+ * Fetch the history events for one incident.
+ */
+export async function fetchIncidentHistory(incidentId) {
+  const response = await fetch(
+    `${API_URL}/${incidentId}/history/`
+  );
+
+  const data = await parseResponse(response);
+
+  return data.history || [];
+}
