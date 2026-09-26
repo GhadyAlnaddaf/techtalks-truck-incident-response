@@ -3,7 +3,7 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import AssistanceContact, Incident
+from .models import AssistanceContact, Incident, IncidentHistory
 
 
 VALID_STATUSES = [
@@ -139,6 +139,13 @@ def create_incident(request):
         description=description,
     )
 
+    # Record incident creation in history
+    IncidentHistory.objects.create(
+        incident=incident,
+        event_type="CREATED",
+        details="Incident created",
+    )
+
     print(
         f"Incident created: "
         f"id={incident.id}, "
@@ -203,6 +210,46 @@ def get_incident(request, incident_id):
         status=200,
     )
 
+@csrf_exempt
+def get_incident_history(request, incident_id):
+    if request.method != "GET":
+        return JsonResponse(
+            {
+                "message": "Only GET requests are allowed"
+            },
+            status=405,
+        )
+
+    try:
+        incident = Incident.objects.get(id=incident_id)
+    except Incident.DoesNotExist:
+        return JsonResponse(
+            {
+                "message": "Incident ID not found"
+            },
+            status=404,
+        )
+
+    history = IncidentHistory.objects.filter(
+        incident=incident
+    ).order_by("created_at", "id")
+
+    history_data = [
+        {
+            "id": event.id,
+            "event_type": event.event_type,
+            "details": event.details,
+            "created_at": event.created_at.isoformat(),
+        }
+        for event in history
+    ]
+
+    return JsonResponse(
+        {
+            "history": history_data
+        },
+        status=200,
+    )
 
 @csrf_exempt
 def status_update(request, incident_id):
@@ -270,6 +317,13 @@ def status_update(request, incident_id):
 
     incident.status = new_status
     incident.save()
+
+    # Record the status change in incident history
+    IncidentHistory.objects.create(
+        incident=incident,
+        event_type="STATUS_CHANGED",
+        details=f"Status changed to {new_status}",
+    )
 
     return JsonResponse(
         {
@@ -372,6 +426,13 @@ def assistance_update(request, incident_id):
     # Assign assistance contact
     incident.assigned_assistance_contact = contact
     incident.save()
+
+    # Record the assistance assignment in incident history
+    IncidentHistory.objects.create(
+        incident=incident,
+        event_type="ASSISTANCE_ASSIGNED",
+        details=f"Assistance assigned to {contact.name}",
+    )
 
     # Reload from database to verify the save
     incident.refresh_from_db()
