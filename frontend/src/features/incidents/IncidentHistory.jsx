@@ -1,175 +1,182 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./IncidentHistory.css";
 
-/* =========================
-   MOCK DATA ONLY
-   Based on Django models
-   ========================= */
-
-const mockHistory = [
-  {
-    id: 1,
-
-    // Incident fields
-    truck_id: "#24",
-    location: "Zahle, Lebanon",
-    description: "The truck reported a flat tire.",
-    status: "Resolved",
-    created_at: "Sep 16, 2026 10:42 AM",
-    updated_at: "Sep 16, 2026 12:15 PM",
-
-    // AssistanceContact fields
-    assigned_assistance_contact: {
-      name: "ABC Mechanics",
-      phone: "+961 71 234 567",
-      email: "abcmechanics@example.com",
-    },
-
-    assistance_contact_phone: "+961 71 234 567",
-
-    // IncidentHistory fields
-    history: [
-      {
-        id: 1,
-        event_type: "CREATED",
-        details: "Incident was reported by the driver.",
-        created_at: "Sep 16, 2026 10:42 AM",
-      },
-      {
-        id: 2,
-        event_type: "STATUS_CHANGED",
-        details: "Status changed from Pending to In Progress.",
-        created_at: "Sep 16, 2026 10:50 AM",
-      },
-      {
-        id: 3,
-        event_type: "ASSISTANCE_ASSIGNED",
-        details: "ABC Mechanics was assigned to the incident.",
-        created_at: "Sep 16, 2026 10:55 AM",
-      },
-      {
-        id: 4,
-        event_type: "RESOLVED",
-        details: "The flat tire was repaired and the incident was resolved.",
-        created_at: "Sep 16, 2026 12:15 PM",
-      },
-    ],
-  },
-
-  {
-    id: 2,
-
-    truck_id: "#18",
-    location: "Beirut, Lebanon",
-    description: "The truck engine stopped working.",
-    status: "Resolved",
-    created_at: "Sep 15, 2026 09:20 AM",
-    updated_at: "Sep 15, 2026 11:40 AM",
-
-    assigned_assistance_contact: {
-      name: "Roadside Assistance",
-      phone: "+961 76 345 678",
-      email: "roadside@example.com",
-    },
-
-    assistance_contact_phone: "+961 76 345 678",
-
-    history: [
-      {
-        id: 1,
-        event_type: "CREATED",
-        details: "Engine failure incident was reported.",
-        created_at: "Sep 15, 2026 09:20 AM",
-      },
-      {
-        id: 2,
-        event_type: "STATUS_CHANGED",
-        details: "Status changed from Pending to In Progress.",
-        created_at: "Sep 15, 2026 09:30 AM",
-      },
-      {
-        id: 3,
-        event_type: "ASSISTANCE_ASSIGNED",
-        details: "Roadside Assistance was assigned.",
-        created_at: "Sep 15, 2026 09:35 AM",
-      },
-      {
-        id: 4,
-        event_type: "RESOLVED",
-        details: "Engine problem was repaired.",
-        created_at: "Sep 15, 2026 11:40 AM",
-      },
-    ],
-  },
-
-  {
-    id: 3,
-
-    truck_id: "#31",
-    location: "Saida, Lebanon",
-    description: "Minor traffic accident involving the truck.",
-    status: "Resolved",
-    created_at: "Sep 14, 2026 02:10 PM",
-    updated_at: "Sep 14, 2026 04:30 PM",
-
-    assigned_assistance_contact: {
-      name: "Lebanon Recovery",
-      phone: "+961 70 456 789",
-      email: "recovery@example.com",
-    },
-
-    assistance_contact_phone: "+961 70 456 789",
-
-    history: [
-      {
-        id: 1,
-        event_type: "CREATED",
-        details: "Accident incident was reported.",
-        created_at: "Sep 14, 2026 02:10 PM",
-      },
-      {
-        id: 2,
-        event_type: "STATUS_CHANGED",
-        details: "Status changed from Pending to In Progress.",
-        created_at: "Sep 14, 2026 02:20 PM",
-      },
-      {
-        id: 3,
-        event_type: "ASSISTANCE_ASSIGNED",
-        details: "Lebanon Recovery was assigned.",
-        created_at: "Sep 14, 2026 02:25 PM",
-      },
-      {
-        id: 4,
-        event_type: "RESOLVED",
-        details: "The accident response was completed.",
-        created_at: "Sep 14, 2026 04:30 PM",
-      },
-    ],
-  },
-];
+import { fetchIncidents, fetchIncidentHistory } from "../../incidentsApi";
 
 function IncidentHistory() {
+  const [incidents, setIncidents] = useState([]);
   const [search, setSearch] = useState("");
   const [openIncident, setOpenIncident] = useState(null);
 
-  const filteredIncidents = mockHistory.filter((incident) => {
-    const searchValue = search.toLowerCase();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-    return (
-      incident.truck_id.toLowerCase().includes(searchValue) ||
-      incident.location.toLowerCase().includes(searchValue) ||
-      incident.description.toLowerCase().includes(searchValue) ||
-      incident.status.toLowerCase().includes(searchValue) ||
-      incident.assigned_assistance_contact?.name
-        .toLowerCase()
-        .includes(searchValue)
-    );
-  });
+  /*
+   * Load incidents and their history from Django.
+   */
+  useEffect(() => {
+    const loadIncidentHistory = async () => {
+      try {
+        setLoading(true);
+        setError("");
 
-  const toggleIncident = (id) => {
-    setOpenIncident(openIncident === id ? null : id);
+        // Get all incidents from the database.
+        const incidentData = await fetchIncidents();
+
+        /*
+         * Get history for every incident.
+         *
+         * Example:
+         * /api/incidents/1/history/
+         * /api/incidents/2/history/
+         * /api/incidents/3/history/
+         */
+        const incidentsWithHistory = await Promise.all(
+          incidentData.map(async (incident) => {
+            try {
+              const history = await fetchIncidentHistory(incident.id);
+
+              return {
+                ...incident,
+                history,
+              };
+            } catch (historyError) {
+              console.error(
+                `Failed to load history for incident ${incident.id}:`,
+                historyError,
+              );
+
+              return {
+                ...incident,
+                history: [],
+              };
+            }
+          }),
+        );
+
+        setIncidents(incidentsWithHistory);
+      } catch (err) {
+        console.error("Failed to load incident history:", err);
+
+        setError(err.message || "Failed to load incident history.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadIncidentHistory();
+  }, []);
+
+  /*
+   * Format Django datetime values for display.
+   *
+   * Example:
+   * 2026-09-16T10:42:00Z
+   *
+   * becomes:
+   * Sep 16, 2026, 10:42 AM
+   */
+  const formatDate = (dateValue) => {
+    if (!dateValue) {
+      return "—";
+    }
+
+    const date = new Date(dateValue);
+
+    if (Number.isNaN(date.getTime())) {
+      return dateValue;
+    }
+
+    return date.toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
   };
+
+  /*
+   * Filter incidents according to the search field.
+   */
+  const filteredIncidents = useMemo(() => {
+    const searchValue = search.trim().toLowerCase();
+
+    if (!searchValue) {
+      return incidents;
+    }
+
+    return incidents.filter((incident) => {
+      const truckId = String(incident.truck_id || "").toLowerCase();
+
+      const location = String(incident.location || "").toLowerCase();
+
+      const description = String(incident.description || "").toLowerCase();
+
+      const status = String(incident.status || "").toLowerCase();
+
+      const assistanceName = String(
+        incident.assigned_assistance_contact?.name || "",
+      ).toLowerCase();
+
+      return (
+        truckId.includes(searchValue) ||
+        location.includes(searchValue) ||
+        description.includes(searchValue) ||
+        status.includes(searchValue) ||
+        assistanceName.includes(searchValue)
+      );
+    });
+  }, [incidents, search]);
+
+  /*
+   * Open/close an incident.
+   */
+  const toggleIncident = (id) => {
+    setOpenIncident((currentId) => (currentId === id ? null : id));
+  };
+
+  /*
+   * Loading state.
+   */
+  if (loading) {
+    return (
+      <div className="history-page">
+        <div className="history-page-header">
+          <div>
+            <h1>Incident History</h1>
+            <p>View the complete history of previously reported incidents.</p>
+          </div>
+        </div>
+
+        <div className="history-empty">
+          <h2>Loading incident history...</h2>
+          <p>Please wait while the incidents are loaded.</p>
+        </div>
+      </div>
+    );
+  }
+
+  /*
+   * Error state.
+   */
+  if (error) {
+    return (
+      <div className="history-page">
+        <div className="history-page-header">
+          <div>
+            <h1>Incident History</h1>
+            <p>View the complete history of previously reported incidents.</p>
+          </div>
+        </div>
+
+        <div className="history-empty">
+          <h2>Unable to load incidents</h2>
+          <p>{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="history-page">
@@ -180,10 +187,13 @@ function IncidentHistory() {
       <div className="history-page-header">
         <div>
           <h1>Incident History</h1>
+
           <p>View the complete history of previously reported incidents.</p>
         </div>
 
-        <div className="history-total">{mockHistory.length} Incidents</div>
+        <div className="history-total">
+          {incidents.length} {incidents.length === 1 ? "Incident" : "Incidents"}
+        </div>
       </div>
 
       {/* =========================
@@ -207,6 +217,10 @@ function IncidentHistory() {
         {filteredIncidents.map((incident) => {
           const isOpen = openIncident === incident.id;
 
+          const assistanceContact = incident.assigned_assistance_contact;
+
+          const history = incident.history || [];
+
           return (
             <div className="history-card" key={incident.id}>
               {/* =========================
@@ -214,12 +228,13 @@ function IncidentHistory() {
                  ========================= */}
 
               <button
+                type="button"
                 className="history-card-header"
                 onClick={() => toggleIncident(incident.id)}
               >
                 <div className="history-card-main">
                   <div className="history-incident-icon">
-                    {incident.truck_id.replace("#", "")}
+                    {String(incident.truck_id || "").replace("#", "")}
                   </div>
 
                   <div className="history-id-row">
@@ -244,27 +259,27 @@ function IncidentHistory() {
               <div className="history-details">
                 <div>
                   <span>Truck ID</span>
-                  <strong>{incident.truck_id}</strong>
+                  <strong>{incident.truck_id || "—"}</strong>
                 </div>
 
                 <div>
                   <span>Location</span>
-                  <strong>{incident.location}</strong>
+                  <strong>{incident.location || "—"}</strong>
                 </div>
 
                 <div>
                   <span>Status</span>
-                  <strong>{incident.status}</strong>
+                  <strong>{incident.status || "—"}</strong>
                 </div>
 
                 <div>
                   <span>Created</span>
-                  <strong>{incident.created_at}</strong>
+                  <strong>{formatDate(incident.created_at)}</strong>
                 </div>
 
                 <div>
                   <span>Updated</span>
-                  <strong>{incident.updated_at}</strong>
+                  <strong>{formatDate(incident.updated_at)}</strong>
                 </div>
               </div>
 
@@ -279,7 +294,7 @@ function IncidentHistory() {
                   <div className="history-description">
                     <h3>Description</h3>
 
-                    <p>{incident.description}</p>
+                    <p>{incident.description || "No description available."}</p>
                   </div>
 
                   {/* Assistance Contact */}
@@ -287,15 +302,24 @@ function IncidentHistory() {
                   <div className="history-assistance">
                     <h3>Assigned Assistance</h3>
 
-                    <p>
-                      <strong>
-                        {incident.assigned_assistance_contact.name}
-                      </strong>
-                    </p>
+                    {assistanceContact ? (
+                      <>
+                        <p>
+                          <strong>{assistanceContact.name}</strong>
+                        </p>
 
-                    <p>Phone: {incident.assistance_contact_phone}</p>
+                        <p>
+                          Phone:{" "}
+                          {incident.assistance_contact_phone ||
+                            assistanceContact.phone ||
+                            "—"}
+                        </p>
 
-                    <p>Email: {incident.assigned_assistance_contact.email}</p>
+                        <p>Email: {assistanceContact.email || "—"}</p>
+                      </>
+                    ) : (
+                      <p>No assistance contact assigned.</p>
+                    )}
                   </div>
 
                   {/* Incident History */}
@@ -303,21 +327,30 @@ function IncidentHistory() {
                   <div className="history-events">
                     <h3>Incident Events</h3>
 
-                    {incident.history.map((event) => (
-                      <div className="history-event" key={event.id}>
-                        <div className="history-event-marker">●</div>
+                    {history.length > 0 ? (
+                      history.map((event) => (
+                        <div className="history-event" key={event.id}>
+                          <div className="history-event-marker">●</div>
 
-                        <div className="history-event-content">
-                          <strong>
-                            {event.event_type.replaceAll("_", " ")}
-                          </strong>
+                          <div className="history-event-content">
+                            <strong>
+                              {String(event.event_type || "").replaceAll(
+                                "_",
+                                " ",
+                              )}
+                            </strong>
 
-                          <p>{event.details}</p>
+                            <p>
+                              {event.details || "No event details available."}
+                            </p>
 
-                          <span>{event.created_at}</span>
+                            <span>{formatDate(event.created_at)}</span>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p>No history events recorded for this incident.</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -331,8 +364,17 @@ function IncidentHistory() {
 
         {filteredIncidents.length === 0 && (
           <div className="history-empty">
-            <h2>No incidents found</h2>
-            <p>Try another search.</p>
+            <h2>
+              {incidents.length === 0
+                ? "No incidents found"
+                : "No matching incidents"}
+            </h2>
+
+            <p>
+              {incidents.length === 0
+                ? "There are no incidents in the database yet."
+                : "Try another search."}
+            </p>
           </div>
         )}
       </div>
