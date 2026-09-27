@@ -213,6 +213,10 @@
    ========================= */
 
 @media (max-width: 767px) {
+  .incident-details {
+    padding: var(--space-4);
+  }
+
   .section-header {
     flex-direction: column;
     align-items: flex-start;
