@@ -20,6 +20,7 @@
   /* Selected-row tint. A UI state, not a status, so it is deliberately
      not one of the --tone-* pairs. */
   --color-primary-soft: #eef4fd;
+  --color-focus-ring: rgba(4, 95, 216, 0.18);
 
   --color-bg: #f4f7fc;
   --color-surface: #ffffff;
@@ -348,7 +349,7 @@ a:hover {
 .input:focus-visible {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(4, 95, 216, 0.18);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
 }
 
 .input:disabled {
@@ -428,6 +429,11 @@ textarea.input {
 }
 
 .table-link {
+  /* Inline-flex with a full-height tap target: the text itself is only
+     about 20px tall, which is too small to tap comfortably. */
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--control-height);
   padding: 0;
   border: none;
   background: none;
