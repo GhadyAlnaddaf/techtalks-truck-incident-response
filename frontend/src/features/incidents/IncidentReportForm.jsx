@@ -193,7 +193,7 @@ function IncidentReportForm() {
     <div className="page">
       <header className="page-header">
         <h1 className="page-title">
-          Report an incident
+          Report an Incident
         </h1>
 
         <p className="page-subtitle">
