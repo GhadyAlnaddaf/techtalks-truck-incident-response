@@ -51,12 +51,11 @@ function DispatcherDashboard() {
       <header className="page-header">
 
         <h1 className="page-title">
-          Dispatcher Dashboard
+          Dashboard
         </h1>
 
         <p className="page-subtitle">
-          Monitor and manage reported
-          truck incidents.
+          Overview of current operations
         </p>
 
       </header>

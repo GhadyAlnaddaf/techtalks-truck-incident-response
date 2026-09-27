@@ -4,6 +4,8 @@ import { assignAssistance, updateIncidentStatus } from "./incidentsApi";
 
 import StatusBadge from "./features/incidents/StatusBadge";
 
+import { formatDateTime } from "./features/incidents/formatDateTime";
+
 import { useIncidentDetails } from "./useIncidentDetails";
 
 function IncidentList({ incidents, setIncidents }) {
@@ -228,7 +230,7 @@ function IncidentList({ incidents, setIncidents }) {
                 <th>Location</th>
                 <th>Status</th>
                 <th>Assistance Contact</th>
-                <th>Created At</th>
+                <th>Reported</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -263,7 +265,7 @@ function IncidentList({ incidents, setIncidents }) {
                   </td>
 
                   <td className="cell-muted cell-nowrap">
-                    {incident.created_at}
+                    {formatDateTime(incident.created_at)}
                   </td>
 
                   <td>
@@ -363,7 +365,7 @@ function IncidentList({ incidents, setIncidents }) {
                 <div className="detail-item">
                   <span>Created At</span>
 
-                  <strong>{selectedIncident.created_at}</strong>
+                  <strong>{formatDateTime(selectedIncident.created_at)}</strong>
                 </div>
 
                 <div className="detail-item full-width">
