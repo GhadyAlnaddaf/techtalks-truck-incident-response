@@ -67,10 +67,10 @@ const validateAll = (values) => {
  */
 function FieldError({ id, message }) {
   return (
-    <p className="incident-form-field-error" id={id}>
+    <p className="field-error incident-form-field-error" id={id}>
       {message && (
         <>
-          <span className="incident-form-visually-hidden">Error: </span>
+          <span className="visually-hidden">Error: </span>
           {message}
         </>
       )}
@@ -190,25 +190,25 @@ function IncidentReportForm() {
   }
 
   return (
-    <div className="incident-form-page">
+    <div className="page">
+      <header className="page-header">
+        <h1 className="page-title">
+          Report an Incident
+        </h1>
+
+        <p className="page-subtitle">
+          Fill in what you can. A dispatcher will pick this up.
+        </p>
+      </header>
+
       <form
-        className="incident-form"
+        className="card card-padded incident-form"
         onSubmit={handleSubmit}
         noValidate
       >
-        <header className="incident-form-header">
-          <h1 className="incident-form-title">
-            Report an incident
-          </h1>
-
-          <p className="incident-form-subtitle">
-            Fill in what you can. A dispatcher will pick this up.
-          </p>
-        </header>
-
-        <div className="incident-form-field">
+        <div className="field incident-form-field">
           <label
-            className="incident-form-label"
+            className="field-label"
             htmlFor="truck_id"
           >
             Truck ID
@@ -221,7 +221,7 @@ function IncidentReportForm() {
           </label>
 
           <input
-            className="incident-form-input"
+            className="input"
             id="truck_id"
             name="truck_id"
             type="text"
@@ -242,9 +242,9 @@ function IncidentReportForm() {
           />
         </div>
 
-        <div className="incident-form-field">
+        <div className="field incident-form-field">
           <label
-            className="incident-form-label"
+            className="field-label"
             htmlFor="location"
           >
             Location
@@ -257,7 +257,7 @@ function IncidentReportForm() {
           </label>
 
           <input
-            className="incident-form-input"
+            className="input"
             id="location"
             name="location"
             type="text"
@@ -274,7 +274,7 @@ function IncidentReportForm() {
           />
 
           <p
-            className="incident-form-hint"
+            className="field-hint"
             id="location_hint"
           >
             Road, exit, landmark, or nearest town.
@@ -286,9 +286,9 @@ function IncidentReportForm() {
           />
         </div>
 
-        <div className="incident-form-field">
+        <div className="field incident-form-field">
           <label
-            className="incident-form-label"
+            className="field-label"
             htmlFor="description"
           >
             What happened
@@ -301,7 +301,7 @@ function IncidentReportForm() {
           </label>
 
           <textarea
-            className="incident-form-input incident-form-textarea"
+            className="input"
             id="description"
             name="description"
             rows="5"
@@ -322,20 +322,20 @@ function IncidentReportForm() {
         </div>
 
         <button
-          className="incident-form-submit"
+          className="btn btn-primary incident-form-submit"
           type="submit"
         >
           {submitting ? 'Submitting...' : 'Submit report'}
         </button>
 
         {message && (
-          <p className="incident-form-success">
+          <p className="alert alert-success">
             {message}
           </p>
         )}
 
         {error && (
-          <p className="incident-form-error" role="alert">
+          <p className="alert alert-error" role="alert">
             {error}
           </p>
         )}

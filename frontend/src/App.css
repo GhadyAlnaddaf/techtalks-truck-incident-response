@@ -1,314 +1,108 @@
-/* =========================
-   MAIN DASHBOARD
-   ========================= */
+/* =====================================================================
+   Dispatcher dashboard, incident table and incident details (TIR-54).
 
-.dashboard {
-  min-height: 100vh;
-  padding: 35px 45px;
-  background-color: #000000;
-  font-family: Arial, sans-serif;
-  color: #ffffff;
-}
-
+   App-level styles only. Buttons, inputs, cards, tables, pills, states
+   and alerts all come from the shared classes in index.css; what is left
+   here is the layout specific to these three areas.
+   ===================================================================== */
 
 /* =========================
-   DASHBOARD HEADER
+   DASHBOARD
    ========================= */
 
-.dashboard-header {
-  margin-bottom: 35px;
-}
-
-.dashboard-header h1 {
-  margin: 0 0 8px;
-  font-size: 30px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.dashboard-header p {
-  margin: 0;
-  color: #bdbdbd;
-  font-size: 15px;
-}
-
-
-/* =========================
-   SECTION HEADER
-   ========================= */
-
-.section-header {
+.dashboard-sections {
+  /* One column of sections. A future stat-card row or map card is added
+     as another child here, above or below the incidents section, without
+     restructuring anything. */
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  margin-bottom: 18px;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
-.section-header h2 {
-  margin: 0;
-  color: #ffffff;
-  font-size: 21px;
+.incident-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
-
-.section-header p {
-  margin: 6px 0 0;
-  color: #999999;
-  font-size: 14px;
-}
-
-
-/* Number of incidents */
 
 .incident-count {
-  padding: 8px 15px;
-  border-radius: 20px;
-  background-color: #172554;
-  border: 1px solid #2563eb;
-  color: #60a5fa;
-  font-size: 13px;
-  font-weight: 700;
+  flex: none;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: var(--tone-grey-bg);
+  color: var(--tone-grey-fg);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
 }
-
 
 /* =========================
    INCIDENT TABLE
    ========================= */
 
+.incident-management {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
 .incident-table-container {
-  width: 100%;
-  background-color: #111111;
-  border: 1px solid #292929;
-  border-radius: 12px;
+  /* The card clips the table's top corners to its own radius. */
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
-
-.incident-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-
-/* Table header */
-
-.incident-table thead {
-  background-color: #151515;
-}
-
-.incident-table th {
-  padding: 16px 20px;
-  text-align: left;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #999999;
-  border-bottom: 1px solid #292929;
-}
-
-
-/* Table cells */
-
-.incident-table td {
-  padding: 17px 20px;
-  font-size: 14px;
-  color: #ffffff;
-  border-bottom: 1px solid #222222;
-}
-
-
-/* Table rows */
 
 .incident-table tbody tr {
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.15s ease;
 }
 
 .incident-table tbody tr:hover {
-  background-color: #191919;
+  background: var(--color-surface-muted);
 }
-
-.incident-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-
-/* Selected incident */
 
 .incident-table tbody tr.selected-row {
-  background-color: #111d38;
+  background: var(--color-primary-soft);
 }
-
-.incident-table tbody tr.selected-row td:first-child {
-  border-left: 4px solid #3b82f6;
-}
-
-
-/* Incident number */
-
-.incident-table td:first-child strong {
-  color: #60a5fa;
-  font-weight: 700;
-}
-
-
-/* =========================
-   STATUS BADGES
-   ========================= */
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  min-width: 75px;
-
-  padding: 6px 13px;
-
-  border-radius: 20px;
-
-  font-size: 12px;
-  font-weight: 700;
-
-  white-space: nowrap;
-}
-
-
-/* -------------------------
-   REPORTED
-   ------------------------- */
-
-.status-reported {
-  background-color: #422006;
-  color: #fbbf24;
-  border: 1px solid #f59e0b;
-}
-
-
-/* -------------------------
-   PENDING
-   ------------------------- */
-
-.status-pending {
-  background-color: #431407;
-  color: #fb923c;
-  border: 1px solid #f97316;
-}
-
-
-/* -------------------------
-   IN PROGRESS
-   ------------------------- */
-
-.status-in-progress {
-  background-color: #172554;
-  color: #60a5fa;
-  border: 1px solid #2563eb;
-}
-
-
-/* -------------------------
-   RESOLVED
-   ------------------------- */
-
-.status-resolved {
-  background-color: #052e16;
-  color: #4ade80;
-  border: 1px solid #22c55e;
-}
-
-
-/* -------------------------
-   CANCELLED
-   ------------------------- */
-
-.status-cancelled {
-  background-color: #450a0a;
-  color: #f87171;
-  border: 1px solid #ef4444;
-}
-
 
 /* =========================
    INCIDENT DETAILS
    ========================= */
 
 .incident-details {
-  margin-top: 25px;
-  padding: 28px;
-
-  background-color: #111111;
-
-  border: 1px solid #292929;
-  border-radius: 12px;
-
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  padding: var(--space-5);
 }
 
-
-/* Details header */
+.incident-details-retry {
+  margin-top: var(--space-4);
+}
 
 .details-header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
-
-  padding-bottom: 22px;
-  margin-bottom: 25px;
-
-  border-bottom: 1px solid #292929;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .details-label {
   display: block;
-
-  margin-bottom: 6px;
-
-  color: #777777;
-
-  font-size: 11px;
-  font-weight: 700;
-
+  margin-bottom: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
-
-.details-header h2 {
-  margin: 0;
-
-  color: #ffffff;
-
-  font-size: 24px;
-}
-
-
-/* =========================
-   CLOSE BUTTON
-   ========================= */
 
 .close-button {
-  width: 35px;
-  height: 35px;
-
-  border: 1px solid #444444;
-  border-radius: 7px;
-
-  background-color: #1a1a1a;
-
-  color: #ffffff;
-
-  font-size: 22px;
-
-  cursor: pointer;
-
-  transition: 0.2s;
+  flex: none;
+  width: var(--control-height);
+  padding: 0;
+  font-size: var(--text-lg);
+  line-height: 1;
 }
-
-.close-button:hover {
-  background-color: #ef4444;
-  border-color: #ef4444;
-}
-
 
 /* =========================
    DETAILS GRID
@@ -316,356 +110,117 @@
 
 .details-grid {
   display: grid;
-
-  grid-template-columns: repeat(2, 1fr);
-
-  gap: 14px;
-
-  margin-bottom: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
 }
 
 .detail-item {
-  padding: 17px;
-
-  background-color: #181818;
-
-  border: 1px solid #292929;
-  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
 }
 
 .detail-item span:first-child {
-  display: block;
-
-  margin-bottom: 7px;
-
-  color: #888888;
-
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
 }
 
 .detail-item strong {
-  color: #ffffff;
-
-  font-size: 14px;
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
 }
 
 .full-width {
   grid-column: 1 / -1;
 }
 
-
 /* =========================
    CONTROL SECTIONS
    ========================= */
 
 .control-section {
-  margin-top: 20px;
-
-  padding: 22px 0;
-
-  border-top: 1px solid #292929;
+  padding-top: var(--space-5);
+  margin-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
 }
 
 .control-section h3 {
-  margin: 0;
-
-  color: #ffffff;
-
-  font-size: 17px;
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
 }
 
-.control-section p {
-  margin: 6px 0 16px;
-
-  color: #999999;
-
-  font-size: 13px;
+.control-section > p {
+  margin: var(--space-1) 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
 }
-
-
-/* =========================
-   SELECT + BUTTON ROW
-   ========================= */
 
 .control-row {
   display: flex;
-
+  flex-wrap: wrap;
   align-items: center;
-
-  gap: 10px;
+  gap: var(--space-3);
 }
 
-
-/* Dropdown */
-
-.control-row select {
-  min-width: 250px;
-
-  height: 43px;
-
-  padding: 0 12px;
-
-  background-color: #181818;
-
-  border: 1px solid #444444;
-
-  border-radius: 7px;
-
-  color: #ffffff;
-
-  font-size: 14px;
-
-  cursor: pointer;
+.control-row .input {
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 320px;
 }
-
-.control-row select:hover {
-  border-color: #666666;
-}
-
-.control-row select:focus {
-  outline: none;
-
-  border-color: #8b5cf6;
-
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
-}
-
-
-/* =========================
-   PRIMARY BUTTON
-   ========================= */
-
-.primary-button {
-  height: 43px;
-
-  padding: 0 20px;
-
-  border: none;
-
-  border-radius: 7px;
-
-  background-color: #7c3aed;
-
-  color: #ffffff;
-
-  font-size: 13px;
-  font-weight: 700;
-
-  cursor: pointer;
-
-  transition: 0.2s;
-}
-
-.primary-button:hover {
-  background-color: #8b5cf6;
-
-  transform: translateY(-1px);
-}
-
-.primary-button:active {
-  transform: translateY(0);
-}
-
-
-/* =========================
-   CURRENT ASSIGNMENT
-   ========================= */
 
 .current-assignment {
   display: flex;
-
+  flex-wrap: wrap;
   align-items: center;
-
-  gap: 8px;
-
-  margin-top: 13px;
-
-  padding: 12px 15px;
-
-  background-color: #1e1b4b;
-
-  border: 1px solid #6d28d9;
-
-  border-radius: 7px;
-
-  font-size: 13px;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
 }
 
 .current-assignment span {
-  color: #c4b5fd;
+  color: var(--color-text-muted);
 }
 
 .current-assignment strong {
-  color: #ffffff;
+  font-weight: var(--weight-semibold);
 }
 
+.action-message {
+  margin-top: var(--space-4);
+}
 
 /* =========================
-   SUCCESS MESSAGE
+   RESPONSIVE
    ========================= */
 
-.success-message {
-  margin-top: 18px;
-
-  padding: 13px 15px;
-
-  background-color: #052e16;
-
-  border: 1px solid #22c55e;
-
-  border-radius: 7px;
-
-  color: #4ade80;
-
-  font-size: 13px;
-
-  font-weight: 600;
-}
-
-
-/* =========================
-   ERROR MESSAGE
-   ========================= */
-
-.error-message {
-  margin-top: 18px;
-
-  padding: 13px 15px;
-
-  background-color: #450a0a;
-
-  border: 1px solid #ef4444;
-
-  border-radius: 7px;
-
-  color: #f87171;
-
-  font-size: 13px;
-
-  font-weight: 600;
-}
-
-
-/* =========================
-   LOADING MESSAGE
-   ========================= */
-
-.message-box {
-  padding: 40px;
-
-  text-align: center;
-
-  background-color: #111111;
-
-  border: 1px solid #292929;
-
-  border-radius: 12px;
-
-  color: #999999;
-}
-
-.message-box p {
-  margin: 0;
-}
-
-
-/* =========================
-   NO INCIDENTS
-   ========================= */
-
-.no-incidents {
-  padding: 45px;
-
-  text-align: center;
-
-  background-color: #111111;
-
-  border: 1px solid #292929;
-
-  border-radius: 12px;
-
-  color: #999999;
-}
-
-.no-incidents p {
-  margin: 0;
-}
-
-
-/* =========================
-   RESPONSIVE - TABLET
-   ========================= */
-
-@media (max-width: 900px) {
-
-  .dashboard {
-    padding: 25px;
-  }
-
-  .incident-table-container {
-    overflow-x: auto;
-  }
-
-  .incident-table {
-    min-width: 700px;
+@media (max-width: 767px) {
+  .incident-details {
+    padding: var(--space-4);
   }
 
   .details-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .full-width {
     grid-column: auto;
   }
 
-}
-
-
-/* =========================
-   RESPONSIVE - MOBILE
-   ========================= */
-
-@media (max-width: 600px) {
-
-  .dashboard {
-    padding: 18px;
+  .control-row .input,
+  .control-row .btn {
+    flex: 1 1 100%;
+    max-width: none;
   }
-
-  .dashboard-header h1 {
-    font-size: 25px;
-  }
-
-  .section-header {
-    align-items: flex-start;
-
-    flex-direction: column;
-
-    gap: 12px;
-  }
-
-  .incident-details {
-    padding: 20px;
-  }
-
-  .control-row {
-    flex-direction: column;
-
-    align-items: stretch;
-  }
-
-  .control-row select {
-    width: 100%;
-  }
-
-  .primary-button {
-    width: 100%;
-  }
-
-  .current-assignment {
-    flex-direction: column;
-
-    align-items: flex-start;
-  }
-
 }

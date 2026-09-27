@@ -1,111 +1,571 @@
+/* =====================================================================
+   TIR global stylesheet (TIR-54)
+
+   Tokens are sampled from docs/design/ui-mockup.jpeg, not eyeballed.
+   Every text/background pair in here is verified at >= 4.5:1 contrast.
+   One light theme only: no dark mode, no prefers-color-scheme rules.
+   ===================================================================== */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  color-scheme: light;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+  /* --- Brand / surfaces (sampled from the mockup) --- */
+  --color-sidebar: #0f2541;
+  --color-sidebar-hover: #17304f;
+  --color-sidebar-label: #c3cfe2;
+  --color-nav-active: #0b4aa0;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --color-primary: #045fd8;
+  --color-primary-hover: #0b4aa0;
+  /* Selected-row tint. A UI state, not a status, so it is deliberately
+     not one of the --tone-* pairs. */
+  --color-primary-soft: #eef4fd;
+  --color-focus-ring: rgba(4, 95, 216, 0.18);
 
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --color-bg: #f4f7fc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f9fc;
+  --color-border: #e3eaf3;
+
+  --color-text: #0f172a;
+  --color-text-muted: #5b6b80;
+  --color-text-invert: #ffffff;
+
+  /* --- Semantic: statuses, messages and danger actions only.
+         Never decorative. --- */
+  --color-danger: #b3261e;
+  --color-danger-bg: #fee2e2;
+  --color-danger-text: #991b1b;
+  --color-success-bg: #d1f7e5;
+  --color-success-text: #166534;
+
+  /* --- Pill tones. Each pair verified at >= 4.5:1.
+         red is unused today; it is the tone a future UrgencyBadge
+         would take for "High". --- */
+  --tone-amber-bg: #ffedd5;
+  --tone-amber-fg: #92400e;
+  --tone-blue-bg: #d6e9ff;
+  --tone-blue-fg: #1e40af;
+  --tone-violet-bg: #ede9fe;
+  --tone-violet-fg: #5b21b6;
+  --tone-cyan-bg: #cffafe;
+  --tone-cyan-fg: #155e75;
+  --tone-green-bg: #d1f7e5;
+  --tone-green-fg: #166534;
+  --tone-grey-bg: #f1f5f9;
+  --tone-grey-fg: #334155;
+  --tone-red-bg: #fee2e2;
+  --tone-red-fg: #991b1b;
+
+  /* --- Spacing scale --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* --- Type scale --- */
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+  --text-md: 16px;
+  --text-lg: 18px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* --- Radius --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* --- Elevation (very soft, as in the mockup) --- */
+  --shadow-card:
+    0 1px 2px rgba(15, 37, 65, 0.04), 0 1px 3px rgba(15, 37, 65, 0.06);
+  --shadow-drawer: 0 10px 30px rgba(15, 37, 65, 0.25);
+
+  /* --- Layout --- */
+  --sidebar-width: 256px;
+  --topbar-height: 56px;
+  --row-height: 56px;
+  --control-height: 44px;
+
+  --font-sans:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/* =====================================================================
+   Reset
+   ===================================================================== */
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
   min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
 }
 
+img,
+svg {
+  max-width: 100%;
+}
+
+/* =====================================================================
+   Base typography
+   ===================================================================== */
+
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3,
+h4 {
+  margin: 0;
+  color: var(--color-text);
+  font-weight: var(--weight-bold);
+  line-height: 1.25;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+  font-size: var(--text-xl);
 }
+
 h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+  font-size: var(--text-lg);
 }
+
+h3 {
+  font-size: var(--text-md);
+}
+
+h4 {
+  font-size: var(--text-base);
+}
+
 p {
   margin: 0;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+a {
+  color: var(--color-primary);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+a:hover {
+  text-decoration: underline;
+}
+
+/* One visible focus ring for the whole app. */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* =====================================================================
+   Layout: page, page header, card
+   ===================================================================== */
+
+.page {
+  padding: var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .page {
+    /* Matches the tighter gutter in the mockup's phone frames. */
+    padding: var(--space-4);
+  }
+}
+
+.page-header {
+  margin-bottom: var(--space-5);
+}
+
+.page-title {
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+}
+
+.page-subtitle {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-base);
+}
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.card-padded {
+  padding: var(--space-5);
+}
+
+.card-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-5) var(--space-4);
+}
+
+@media (max-width: 767px) {
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+.card-title {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.card-subtitle {
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+/* =====================================================================
+   Buttons: one system for the whole app
+   ===================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--control-height);
+  padding: 0 var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: none;
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.btn:hover {
+  text-decoration: none;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: var(--color-text-invert);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-muted);
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-text-invert);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-text);
+}
+
+/* =====================================================================
+   Form controls: one style for input, select and textarea
+   ===================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+  color: var(--color-text);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.input {
+  width: 100%;
+  min-height: var(--control-height);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: inherit;
+  font-size: var(--text-md);
+  line-height: 1.4;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:hover:not(:disabled) {
+  border-color: var(--color-text-muted);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.input:disabled {
+  background: var(--color-surface-muted);
+  cursor: not-allowed;
+}
+
+select.input {
+  padding-right: var(--space-6);
+  cursor: pointer;
+}
+
+textarea.input {
+  /* Vertical only: horizontal dragging would push the page sideways. */
+  resize: vertical;
+  min-height: 120px;
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger);
+  box-shadow: inset 0 0 0 1px var(--color-danger);
+}
+
+.field-hint {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+/* =====================================================================
+   Tables
+
+   Column-agnostic on purpose: adding Urgency or Type later needs no new
+   CSS, only the alignment helpers below where a column wants one.
+   ===================================================================== */
+
+.table-scroll {
+  /* Keeps a wide table inside its own scroller so the page itself never
+     scrolls sideways on a phone. */
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-base);
+}
+
+.table th {
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-muted);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table td {
+  height: var(--row-height);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  vertical-align: middle;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table-link {
+  /* 32px, not the 44px control height: with the cell's 12px padding that
+     lands the row exactly on --row-height, matching the mockup. The tap
+     target is the whole row, which is 56px tall and clickable. */
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-primary);
+  font-family: inherit;
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+
+.table-link:hover {
+  text-decoration: underline;
+}
+
+.cell-strong {
+  font-weight: var(--weight-semibold);
+}
+
+.cell-muted {
+  color: var(--color-text-muted);
+}
+
+.cell-nowrap {
+  white-space: nowrap;
+}
+
+/* Keeps a long free-text value on one line, as in the mockup, instead of
+   wrapping and making the row two or three lines tall. Sits on an inner
+   span rather than the cell, because max-width on a td is ignored by the
+   automatic table layout. Pair it with a title attribute so the full
+   value is still reachable; it is also shown in full in the details
+   panel. */
+.cell-truncate {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =====================================================================
+   Loading, empty and error states
+   ===================================================================== */
+
+.state {
+  padding: var(--space-7) var(--space-5);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.state-title {
+  margin-bottom: var(--space-1);
+  color: var(--color-text);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+}
+
+.alert {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+}
+
+.alert-error {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+  color: var(--color-danger-text);
+}
+
+.alert-success {
+  background: var(--color-success-bg);
+  border-color: var(--color-success-text);
+  color: var(--color-success-text);
+}
+
+/* Screen-reader-only text. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* =====================================================================
+   TIR-53 incident history page (Salam) — NOT restyled by TIR-54.
+
+   It predates this stylesheet and still relies on browser defaults for
+   anything its own CSS does not set. These rules pin those defaults
+   inside .history-page so the rewrite above cannot change how it
+   renders. Its own rules are more specific, so they still win.
+   Do not add styling here.
+   ===================================================================== */
+
+.history-page :where(p, h1, h2, h3, h4, ul, ol) {
+  margin: revert;
+}
+
+.history-page :where(h1, h2, h3, h4) {
+  font-size: revert;
+  font-weight: revert;
+}
+
+.history-page :where(button, input, select, textarea) {
+  font: revert;
+}
+
+.history-page * {
+  box-sizing: content-box;
 }

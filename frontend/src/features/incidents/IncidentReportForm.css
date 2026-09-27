@@ -1,131 +1,28 @@
-/* Incident report form (TIR-32).
+/* Incident report form (TIR-32, restyled in TIR-54).
+
    Mobile-first: the primary user is a driver on a phone at the roadside.
-   Colours come from the tokens already defined in src/index.css, so this form
-   follows the app's light and dark schemes without touching global styles. */
-
-.incident-form-page {
-  /* Text on the accent-filled submit button. The accent is dark purple in the
-     light scheme and pale purple in the dark one, so the label has to flip. */
-  /*--incident-submit-fg: #fff;*/
-  /* Field error text and invalid-input borders. */
-  --incident-error: #b3261e;
-
-  box-sizing: border-box;
-  width: 100%;
-  max-width: 34rem;
-  margin: 0 auto;
-  padding: 24px 16px 48px;
-  /* #root centres its text; form controls read better left-aligned. */
-  text-align: left;
-}
-
-@media (prefers-color-scheme: dark) {
-  .incident-form-page {
-    --incident-submit-fg: #16171d;
-  }
-}
-
-/* light-dark() follows the colour scheme the page is actually rendered in,
-   not just the OS preference, so the pale red never lands on a white page. */
-@supports (color: light-dark(#000, #fff)) {
-  .incident-form-page {
-    --incident-error: light-dark(#b3261e, #fca5a5);
-  }
-}
-
-.incident-form,
-.incident-form-field {
-  display: flex;
-  flex-direction: column;
-}
+   Layout, inputs, buttons and messages now come from the shared classes
+   in index.css. Only what is specific to this form lives here. */
 
 .incident-form {
-  gap: 20px;
+  /* Left-aligned in the content area, as in the mockup, with the width
+     cap on the form itself so the inputs do not stretch across a wide
+     screen. The page header above it aligns to the same left edge. */
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 560px;
 }
 
 .incident-form-field {
-  gap: 6px;
-}
-
-.incident-form-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.incident-form-title {
-  margin: 0;
-  font-size: 26px;
-  line-height: 125%;
-  letter-spacing: -0.4px;
-}
-
-.incident-form-subtitle {
-  font-size: 15px;
-  line-height: 140%;
-  color: var(--text);
-}
-
-.incident-form-label {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text-h);
+  /* Tighter than the default .field gap: the reserved error line below
+     each input already supplies part of the spacing. */
+  gap: var(--space-2);
 }
 
 .incident-form-required {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.incident-form-hint {
-  font-size: 13px;
-  line-height: 135%;
-  color: var(--text);
-}
-
-.incident-form-input {
-  box-sizing: border-box;
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  max-width: 100%;
-  min-height: 48px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
-  color: var(--text-h);
-  font-family: var(--sans);
-  font-size: 16px;
-  line-height: 140%;
-  transition: border-color 0.2s;
-}
-
-.incident-form-input:hover {
-  border-color: var(--accent-border);
-}
-
-.incident-form-input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
-  border-color: var(--accent);
-}
-
-.incident-form-textarea {
-  /* Vertical only: horizontal dragging would push the page sideways. */
-  resize: vertical;
-  min-height: 120px;
-}
-
-/* After :hover and :focus-visible, so the error border wins on equal
-   specificity. The second pixel is drawn inside, so the input keeps its size;
-   with the message below it, the error does not rely on colour alone. */
-.incident-form-input[aria-invalid='true'] {
-  border-color: var(--incident-error);
-  box-shadow: inset 0 0 0 1px var(--incident-error);
+  color: var(--color-danger);
+  font-weight: var(--weight-semibold);
 }
 
 .incident-form-field-error {
@@ -133,68 +30,10 @@
      pushes the fields below it down. Whole pixels, so the empty slot and a
      line of text come out exactly the same height. */
   min-height: 20px;
-  font-size: 14px;
   line-height: 20px;
-  font-weight: 600;
-  color: var(--incident-error);
-}
-
-.incident-form-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  padding: 0;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
 }
 
 .incident-form-submit {
-  min-height: 52px;
-  margin-top: 4px;
-  padding: 14px 20px;
-  border: 2px solid transparent;
-  border-radius: 8px;
-  background: var(--accent);
-  color: var(--incident-submit-fg);
-  font-family: var(--sans);
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    opacity 0.2s,
-    filter 0.2s;
-}
-
-.incident-form-submit:hover:not(:disabled) {
-  filter: brightness(1.08);
-}
-
-.incident-form-submit:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.incident-form-submit:disabled {
-  background: var(--accent-bg);
-  color: var(--text);
-  cursor: not-allowed;
-}
-
-/* Server and network failures, shown below the button. */
-.incident-form-error {
-  font-weight: 600;
-  color: var(--incident-error);
-}
-
-@media (min-width: 480px) {
-  .incident-form-page {
-    padding: 32px 24px 56px;
-  }
-
-  .incident-form-title {
-    font-size: 32px;
-  }
+  width: 100%;
+  margin-top: var(--space-1);
 }

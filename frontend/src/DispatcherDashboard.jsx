@@ -46,80 +46,57 @@ function DispatcherDashboard() {
 
 
   return (
-    <div className="dashboard">
+    <div className="page">
 
-      <div className="dashboard-header">
+      <header className="page-header">
 
-        <h1>
-          Dispatcher Dashboard
+        <h1 className="page-title">
+          Dashboard
         </h1>
 
-        <p>
-          Monitor and manage reported
-          truck incidents.
+        <p className="page-subtitle">
+          Overview of current operations
         </p>
 
+      </header>
+
+      {/* Sections stack in one column. A future row of stat cards or a
+          map card drops in here as another section without touching the
+          markup below it. */}
+      <div className="dashboard-sections">
+
+        <section className="incident-section">
+
+          {loading && (
+            <div className="card state">
+
+              <p>
+                Loading incidents...
+              </p>
+
+            </div>
+          )}
+
+
+          {error && (
+            <p className="alert alert-error" role="alert">
+              {error}
+            </p>
+          )}
+
+
+          {!loading && !error && (
+            <IncidentList
+              incidents={incidents}
+              setIncidents={
+                setIncidents
+              }
+            />
+          )}
+
+        </section>
+
       </div>
-
-
-      <section className="incident-section">
-
-        <div className="section-header">
-
-          <div>
-
-            <h2>
-              Incidents
-            </h2>
-
-            <p>
-              Select an incident to view
-              its full details.
-            </p>
-
-          </div>
-
-
-          <span className="incident-count">
-            {incidents.length} incident
-            {incidents.length !== 1
-              ? "s"
-              : ""}
-          </span>
-
-        </div>
-
-
-        {loading && (
-          <div className="message-box">
-
-            <p>
-              Loading incidents...
-            </p>
-
-          </div>
-        )}
-
-
-        {error && (
-          <div className="message-box error-message">
-
-            <p>{error}</p>
-
-          </div>
-        )}
-
-
-        {!loading && !error && (
-          <IncidentList
-            incidents={incidents}
-            setIncidents={
-              setIncidents
-            }
-          />
-        )}
-
-      </section>
 
     </div>
   );
