@@ -1,0 +1,57 @@
+/* Base pill (TIR-54).
+
+   Geometry is measured from docs/design/ui-mockup.jpeg: a fully rounded
+   tag, roughly 24px tall, with a light tinted background and darker text
+   of the same hue. Tones come from the --tone-* tokens in index.css and
+   every pair is verified at >= 4.5:1 contrast.
+
+   This is the shared shape only. It carries no meaning on its own, so a
+   future UrgencyBadge or TypeBadge can reuse it with a different tone. */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.pill-amber {
+  background: var(--tone-amber-bg);
+  color: var(--tone-amber-fg);
+}
+
+.pill-blue {
+  background: var(--tone-blue-bg);
+  color: var(--tone-blue-fg);
+}
+
+.pill-violet {
+  background: var(--tone-violet-bg);
+  color: var(--tone-violet-fg);
+}
+
+.pill-cyan {
+  background: var(--tone-cyan-bg);
+  color: var(--tone-cyan-fg);
+}
+
+.pill-green {
+  background: var(--tone-green-bg);
+  color: var(--tone-green-fg);
+}
+
+.pill-grey {
+  background: var(--tone-grey-bg);
+  color: var(--tone-grey-fg);
+}
+
+.pill-red {
+  background: var(--tone-red-bg);
+  color: var(--tone-red-fg);
+}
