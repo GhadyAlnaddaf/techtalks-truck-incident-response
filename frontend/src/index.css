@@ -17,6 +17,9 @@
 
   --color-primary: #045fd8;
   --color-primary-hover: #0b4aa0;
+  /* Selected-row tint. A UI state, not a status, so it is deliberately
+     not one of the --tone-* pairs. */
+  --color-primary-soft: #eef4fd;
 
   --color-bg: #f4f7fc;
   --color-surface: #ffffff;

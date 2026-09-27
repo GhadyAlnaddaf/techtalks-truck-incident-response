@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import { assignAssistance, updateIncidentStatus } from "./incidentsApi";
 
+import StatusBadge from "./features/incidents/StatusBadge";
+
 import { useIncidentDetails } from "./useIncidentDetails";
 
 function IncidentList({ incidents, setIncidents }) {
@@ -206,7 +208,7 @@ function IncidentList({ incidents, setIncidents }) {
    */
   if (incidents.length === 0) {
     return (
-      <div className="no-incidents">
+      <div className="card state">
         <p>No incidents reported yet.</p>
       </div>
     );
@@ -216,65 +218,78 @@ function IncidentList({ incidents, setIncidents }) {
     <div className="incident-management">
       {/* INCIDENT TABLE */}
 
-      <div className="incident-table-container">
-        {" "}
-        <table className="incident-table">
-          {" "}
-          <thead>
-            {" "}
-            <tr>
-              {" "}
-              <th>Incident</th> <th>Truck ID</th> <th>Location</th>{" "}
-              <th>Status</th> <th>Assistance Contact</th>{" "}
-              <th>Created At</th>{" "}
-            </tr>{" "}
-          </thead>{" "}
-          <tbody>
-            {" "}
-            {incidents.map((incident) => (
-              <tr
-                key={incident.id}
-                onClick={() => handleIncidentClick(incident)}
-                className={
-                  selectedIncidentId === incident.id ? "selected-row" : ""
-                }
-              >
-                {" "}
-                <td>
-                  {" "}
-                  <strong>#{incident.id}</strong>{" "}
-                </td>{" "}
-                <td>{incident.truck_id}</td> <td>{incident.location}</td>{" "}
-                <td>
-                  {" "}
-                  <span className="status"> {incident.status} </span>{" "}
-                </td>{" "}
-                <td>
-                  {" "}
-                  {incident.assigned_assistance_contact ? (
-                    <strong>
-                      {" "}
-                      {incident.assigned_assistance_contact.phone}{" "}
-                    </strong>
-                  ) : (
-                    <span>Not assigned</span>
-                  )}{" "}
-                </td>{" "}
-                <td>{incident.created_at}</td>{" "}
+      <div className="card incident-table-container">
+        <div className="table-scroll">
+          <table className="table incident-table">
+            <thead>
+              <tr>
+                <th>Incident</th>
+                <th>Truck ID</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Assistance Contact</th>
+                <th>Created At</th>
+                <th>Action</th>
               </tr>
-            ))}{" "}
-          </tbody>{" "}
-        </table>{" "}
+            </thead>
+
+            <tbody>
+              {incidents.map((incident) => (
+                <tr
+                  key={incident.id}
+                  onClick={() => handleIncidentClick(incident)}
+                  className={
+                    selectedIncidentId === incident.id ? "selected-row" : ""
+                  }
+                >
+                  <td className="cell-strong cell-nowrap">#{incident.id}</td>
+
+                  <td>{incident.truck_id}</td>
+
+                  <td>{incident.location}</td>
+
+                  <td>
+                    <StatusBadge status={incident.status} />
+                  </td>
+
+                  <td>
+                    {incident.assigned_assistance_contact ? (
+                      <span className="cell-strong">
+                        {incident.assigned_assistance_contact.phone}
+                      </span>
+                    ) : (
+                      <span className="cell-muted">Not assigned</span>
+                    )}
+                  </td>
+
+                  <td className="cell-muted cell-nowrap">
+                    {incident.created_at}
+                  </td>
+
+                  <td>
+                    {/* No handler of its own: the click bubbles to the row,
+                        which is what already selects the incident. This only
+                        makes that existing action visible and reachable by
+                        keyboard. */}
+                    <button type="button" className="table-link">
+                      View
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* INCIDENT DETAILS */}
 
       {selectedIncidentId && (
-        <div className="incident-details">
+        <div className="card incident-details">
           {/* Loading */}
 
           {detailsState === "loading" && (
-            <div className="message-box">
+            <div className="state">
               <p>Loading incident details...</p>
             </div>
           )}
@@ -282,10 +297,15 @@ function IncidentList({ incidents, setIncidents }) {
           {/* Error */}
 
           {detailsState === "error" && (
-            <div className="message-box error-message">
-              <p>{detailsError}</p>
+            <div className="state">
+              <p className="alert alert-error" role="alert">
+                {detailsError}
+              </p>
 
-              <button className="primary-button" onClick={retry}>
+              <button
+                className="btn btn-secondary incident-details-retry"
+                onClick={retry}
+              >
                 Try Again
               </button>
             </div>
@@ -305,8 +325,9 @@ function IncidentList({ incidents, setIncidents }) {
                 </div>
 
                 <button
-                  className="close-button"
+                  className="btn btn-secondary close-button"
                   onClick={() => setSelectedIncidentId(null)}
+                  aria-label="Close incident details"
                 >
                   ×
                 </button>
@@ -336,9 +357,7 @@ function IncidentList({ incidents, setIncidents }) {
                 <div className="detail-item">
                   <span>Current Status</span>
 
-                  <strong>
-                    <span className="status">{selectedIncident.status}</span>
-                  </strong>
+                  <StatusBadge status={selectedIncident.status} />
                 </div>
 
                 <div className="detail-item">
@@ -365,6 +384,7 @@ function IncidentList({ incidents, setIncidents }) {
 
                 <div className="control-row">
                   <select
+                    className="input"
                     value={selectedAssistance}
                     onChange={(e) => setSelectedAssistance(e.target.value)}
                     disabled={actionLoading}
@@ -379,7 +399,7 @@ function IncidentList({ incidents, setIncidents }) {
                   </select>
 
                   <button
-                    className="primary-button"
+                    className="btn btn-primary"
                     onClick={handleAssign}
                     disabled={actionLoading}
                   >
@@ -407,6 +427,7 @@ function IncidentList({ incidents, setIncidents }) {
 
                 <div className="control-row">
                   <select
+                    className="input"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
                     disabled={actionLoading}
@@ -421,7 +442,7 @@ function IncidentList({ incidents, setIncidents }) {
                   </select>
 
                   <button
-                    className="primary-button"
+                    className="btn btn-primary"
                     onClick={handleStatusUpdate}
                     disabled={actionLoading}
                   >
@@ -436,8 +457,8 @@ function IncidentList({ incidents, setIncidents }) {
                 <div
                   className={
                     messageType === "success"
-                      ? "action-message success-message"
-                      : "action-message error-message"
+                      ? "alert alert-success action-message"
+                      : "alert alert-error action-message"
                   }
                 >
                   {message}
