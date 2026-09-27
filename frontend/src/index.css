@@ -436,11 +436,12 @@ textarea.input {
 }
 
 .table-link {
-  /* Inline-flex with a full-height tap target: the text itself is only
-     about 20px tall, which is too small to tap comfortably. */
+  /* 32px, not the 44px control height: with the cell's 12px padding that
+     lands the row exactly on --row-height, matching the mockup. The tap
+     target is the whole row, which is 56px tall and clickable. */
   display: inline-flex;
   align-items: center;
-  min-height: var(--control-height);
+  min-height: 32px;
   padding: 0;
   border: none;
   background: none;
