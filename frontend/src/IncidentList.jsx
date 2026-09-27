@@ -276,9 +276,17 @@ function IncidentList({ incidents, setIncidents }) {
                 >
                   <td className="cell-strong cell-nowrap">#{incident.id}</td>
 
-                  <td>{incident.truck_id}</td>
+                  <td>
+                    <span className="cell-truncate" title={incident.truck_id}>
+                      {incident.truck_id}
+                    </span>
+                  </td>
 
-                  <td>{incident.location}</td>
+                  <td>
+                    <span className="cell-truncate" title={incident.location}>
+                      {incident.location}
+                    </span>
+                  </td>
 
                   <td>
                     <StatusBadge status={incident.status} />

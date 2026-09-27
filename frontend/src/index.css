@@ -477,6 +477,20 @@ textarea.input {
   white-space: nowrap;
 }
 
+/* Keeps a long free-text value on one line, as in the mockup, instead of
+   wrapping and making the row two or three lines tall. Sits on an inner
+   span rather than the cell, because max-width on a td is ignored by the
+   automatic table layout. Pair it with a title attribute so the full
+   value is still reachable; it is also shown in full in the details
+   panel. */
+.cell-truncate {
+  display: block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* =====================================================================
    Loading, empty and error states
    ===================================================================== */
