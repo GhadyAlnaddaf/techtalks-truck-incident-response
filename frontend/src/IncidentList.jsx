@@ -8,6 +8,30 @@ import { formatDateTime } from "./features/incidents/formatDateTime";
 
 import { useIncidentDetails } from "./useIncidentDetails";
 
+/**
+ * The table card's own header. In the mockup the section heading sits
+ * inside the white card, above the table, rather than on the page
+ * background. Presentational only -- no state, no handlers.
+ */
+function IncidentsCardHeader({ count }) {
+  return (
+    <div className="card-header">
+      <div>
+        <h2 className="card-title">Incidents</h2>
+
+        <p className="card-subtitle">
+          Select an incident to view its full details.
+        </p>
+      </div>
+
+      <span className="incident-count">
+        {count} incident
+        {count !== 1 ? "s" : ""}
+      </span>
+    </div>
+  );
+}
+
 function IncidentList({ incidents, setIncidents }) {
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
 
@@ -210,8 +234,12 @@ function IncidentList({ incidents, setIncidents }) {
    */
   if (incidents.length === 0) {
     return (
-      <div className="card state">
-        <p>No incidents reported yet.</p>
+      <div className="card">
+        <IncidentsCardHeader count={0} />
+
+        <div className="state">
+          <p>No incidents reported yet.</p>
+        </div>
       </div>
     );
   }
@@ -221,6 +249,8 @@ function IncidentList({ incidents, setIncidents }) {
       {/* INCIDENT TABLE */}
 
       <div className="card incident-table-container">
+        <IncidentsCardHeader count={incidents.length} />
+
         <div className="table-scroll">
           <table className="table incident-table">
             <thead>

@@ -67,32 +67,6 @@ function DispatcherDashboard() {
 
         <section className="incident-section">
 
-          <div className="section-header">
-
-            <div>
-
-              <h2 className="card-title">
-                Incidents
-              </h2>
-
-              <p className="card-subtitle">
-                Select an incident to view
-                its full details.
-              </p>
-
-            </div>
-
-
-            <span className="incident-count">
-              {incidents.length} incident
-              {incidents.length !== 1
-                ? "s"
-                : ""}
-            </span>
-
-          </div>
-
-
           {loading && (
             <div className="card state">
 
