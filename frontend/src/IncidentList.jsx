@@ -363,7 +363,7 @@ function IncidentList({ incidents, setIncidents }) {
                 </div>
 
                 <div className="detail-item">
-                  <span>Created At</span>
+                  <span>Reported</span>
 
                   <strong>{formatDateTime(selectedIncident.created_at)}</strong>
                 </div>
