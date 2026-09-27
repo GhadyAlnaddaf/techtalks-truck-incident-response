@@ -441,6 +441,7 @@ textarea.input {
      target is the whole row, which is 56px tall and clickable. */
   display: inline-flex;
   align-items: center;
+  gap: var(--space-1);
   min-height: 32px;
   padding: 0;
   border: none;

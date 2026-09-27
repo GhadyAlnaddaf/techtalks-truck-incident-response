@@ -275,6 +275,7 @@ function IncidentList({ incidents, setIncidents }) {
                         keyboard. */}
                     <button type="button" className="table-link">
                       View
+                      <span aria-hidden="true">&rarr;</span>
                     </button>
                   </td>
                 </tr>
