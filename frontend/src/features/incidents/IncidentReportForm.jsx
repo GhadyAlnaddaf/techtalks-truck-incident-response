@@ -190,7 +190,7 @@ function IncidentReportForm() {
   }
 
   return (
-    <div className="page incident-form-page">
+    <div className="page">
       <header className="page-header">
         <h1 className="page-title">
           Report an incident
