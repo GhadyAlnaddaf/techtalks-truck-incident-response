@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import "./IncidentHistory.css";
 
@@ -140,6 +140,28 @@ function IncidentHistory() {
   const toggleIncident = (id) => {
     setOpenIncident((currentId) => (currentId === id ? null : id));
   };
+
+  /*
+   * The details open below the table, which on a phone is out of sight.
+   * Opening scrolls the panel into view and moves focus to its heading;
+   * closing hands focus back to the View button of the incident that was
+   * open.
+   */
+  const detailsRef = useRef(null);
+  const detailsHeadingRef = useRef(null);
+  const viewButtonsRef = useRef(new Map());
+  const lastOpenRef = useRef(null);
+
+  useEffect(() => {
+    if (openIncident !== null) {
+      detailsRef.current?.scrollIntoView({ block: "nearest" });
+      detailsHeadingRef.current?.focus({ preventScroll: true });
+    } else if (lastOpenRef.current !== null) {
+      viewButtonsRef.current.get(lastOpenRef.current)?.focus();
+    }
+
+    lastOpenRef.current = openIncident;
+  }, [openIncident]);
 
   /*
    * Loading state.
@@ -302,6 +324,11 @@ function IncidentHistory() {
                               makes that action visible and reachable by
                               keyboard. */}
                           <button
+                            ref={(button) => {
+                              viewButtonsRef.current.set(incident.id, button);
+                              return () =>
+                                viewButtonsRef.current.delete(incident.id);
+                            }}
                             type="button"
                             className="table-link"
                             aria-expanded={isOpen}
@@ -341,12 +368,14 @@ function IncidentHistory() {
            ========================= */}
 
         {openDetails && (
-          <div className="card incident-details">
+          <div className="card incident-details" ref={detailsRef}>
             <div className="details-header">
               <div>
                 <span className="details-label">Selected Incident</span>
 
-                <h2>Incident #{openDetails.id}</h2>
+                <h2 ref={detailsHeadingRef} tabIndex={-1}>
+                  Incident #{openDetails.id}
+                </h2>
               </div>
 
               <button

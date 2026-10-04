@@ -41,6 +41,22 @@
 }
 
 /* =========================
+   DETAILS PANEL
+   ========================= */
+
+/* Opening the details scrolls them into view; keep their top clear of
+   the sticky top bar on a phone. */
+.history-page .incident-details {
+  scroll-margin-top: var(--space-4);
+}
+
+@media (max-width: 767px) {
+  .history-page .incident-details {
+    scroll-margin-top: calc(var(--topbar-height) + var(--space-4));
+  }
+}
+
+/* =========================
    EVENTS TIMELINE
    ========================= */
 
