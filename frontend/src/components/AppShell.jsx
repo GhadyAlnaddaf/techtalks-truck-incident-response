@@ -1,27 +1,41 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { Clock, FilePlus, LayoutDashboard, Menu, X } from "lucide-react";
+import {
+  Clock,
+  FilePlus,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+} from "lucide-react";
 
 import Brand from "./Brand";
+import { getNavLinks } from "./navLinks";
 import "./AppShell.css";
 
 /**
- * The app shell (TIR-54): navy sidebar on desktop, top bar plus drawer
- * below 768px. Presentational only -- it is a layout route in App.jsx,
- * renders the matched page through <Outlet />, and owns no state beyond
- * the drawer.
+ * The app shell (TIR-54, role-aware since TIR-61): navy sidebar on
+ * desktop, top bar plus drawer below 768px. Presentational only -- it is
+ * a layout route in App.jsx, renders the matched page through <Outlet />,
+ * and owns no state beyond the drawer.
  *
- * EXTENSION POINT: the sidebar and the drawer are both rendered from this
- * one array, so adding a page later is a single entry here. It links only
- * to routes that exist in App.jsx.
+ * Props:
+ *   role      A value from ROLES. Picks the links via getNavLinks; a
+ *             missing or unknown role shows no links, only Logout.
+ *   onLogout  Called when Logout is pressed. The shell does not know how
+ *             logging out works.
+ *
+ * The sidebar and the drawer render the same list, so they never differ.
  */
-const NAV_ITEMS = [
-  { to: "/", label: "Report Incident", icon: FilePlus, end: true },
-  { to: "/dispatcher", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/history", label: "History", icon: Clock },
-];
 
-function AppShell() {
+/** Icon key from navLinks.js -> lucide icon. */
+const NAV_ICONS = {
+  report: FilePlus,
+  dashboard: LayoutDashboard,
+  history: Clock,
+};
+
+function AppShell({ role, onLogout }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const closeDrawer = () => setDrawerOpen(false);
@@ -42,24 +56,47 @@ function AppShell() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [drawerOpen]);
 
+  const links = getNavLinks(role);
+
   /* The drawer closes from the link's own onClick rather than from an
      effect watching the route, so navigating never triggers a cascading
-     render. */
-  const navItems = (onNavigate) =>
-    NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
-      <NavLink
-        key={to}
-        to={to}
-        end={end}
-        onClick={onNavigate}
-        className={({ isActive }) =>
-          isActive ? "shell-nav-item shell-nav-item-active" : "shell-nav-item"
-        }
+     render. Logout is the last item, as in the mockup. */
+  const navItems = (onNavigate) => (
+    <>
+      {links.map(({ path, label, icon, end }) => {
+        const Icon = NAV_ICONS[icon];
+
+        return (
+          <NavLink
+            key={path}
+            to={path}
+            end={end}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              isActive
+                ? "shell-nav-item shell-nav-item-active"
+                : "shell-nav-item"
+            }
+          >
+            {Icon && <Icon size={20} aria-hidden="true" />}
+            <span>{label}</span>
+          </NavLink>
+        );
+      })}
+
+      <button
+        type="button"
+        className="shell-nav-item shell-nav-button"
+        onClick={() => {
+          onNavigate?.();
+          onLogout?.();
+        }}
       >
-        <Icon size={20} aria-hidden="true" />
-        <span>{label}</span>
-      </NavLink>
-    ));
+        <LogOut size={20} aria-hidden="true" />
+        <span>Logout</span>
+      </button>
+    </>
+  );
 
   return (
     <div className="shell">

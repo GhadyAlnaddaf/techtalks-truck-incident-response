@@ -58,6 +58,16 @@
   text-decoration: none;
 }
 
+/* Logout is a button, not a link, but looks like the other rows. */
+.shell-nav-button {
+  width: 100%;
+  border: none;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
 .shell-nav-item-active,
 .shell-nav-item-active:hover {
   background: var(--color-nav-active);
