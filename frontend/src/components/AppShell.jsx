@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import {
   Clock,
@@ -35,33 +35,12 @@ const NAV_ICONS = {
   history: Clock,
 };
 
-function AppShell({ role, onLogout }) {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  const closeDrawer = () => setDrawerOpen(false);
-
-  // Subscribes to a platform event. The state update happens inside the
-  // listener, not in the effect body.
-  useEffect(() => {
-    if (!drawerOpen) return undefined;
-
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        setDrawerOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [drawerOpen]);
-
-  const links = getNavLinks(role);
-
-  /* The drawer closes from the link's own onClick rather than from an
-     effect watching the route, so navigating never triggers a cascading
-     render. Logout is the last item, as in the mockup. */
-  const navItems = (onNavigate) => (
+/* The nav rows, shared by the sidebar and the drawer. The drawer closes
+   from the link's own onClick rather than from an effect watching the
+   route, so navigating never triggers a cascading render. Logout is the
+   last item, as in the mockup. */
+function NavItems({ links, onNavigate, onLogout }) {
+  return (
     <>
       {links.map(({ path, label, icon, end }) => {
         const Icon = NAV_ICONS[icon];
@@ -97,6 +76,37 @@ function AppShell({ role, onLogout }) {
       </button>
     </>
   );
+}
+
+function AppShell({ role, onLogout }) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const menuButtonRef = useRef(null);
+
+  // Focus goes back to the button that opened the drawer. (Opening moves
+  // focus in through autoFocus on the close button.)
+  const closeDrawer = useCallback(() => {
+    setDrawerOpen(false);
+    menuButtonRef.current?.focus();
+  }, []);
+
+  // Subscribes to a platform event. The state update happens inside the
+  // listener, not in the effect body.
+  useEffect(() => {
+    if (!drawerOpen) return undefined;
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        closeDrawer();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerOpen, closeDrawer]);
+
+  const links = getNavLinks(role);
 
   return (
     <div className="shell">
@@ -106,7 +116,7 @@ function AppShell({ role, onLogout }) {
         </div>
 
         <nav className="shell-nav" aria-label="Main">
-          {navItems(undefined)}
+          <NavItems links={links} onLogout={onLogout} />
         </nav>
       </aside>
 
@@ -114,6 +124,7 @@ function AppShell({ role, onLogout }) {
         <Brand />
 
         <button
+          ref={menuButtonRef}
           type="button"
           className="shell-icon-button"
           onClick={() => setDrawerOpen(true)}
@@ -134,13 +145,18 @@ function AppShell({ role, onLogout }) {
               className="shell-icon-button shell-icon-button-invert"
               onClick={closeDrawer}
               aria-label="Close menu"
+              autoFocus
             >
               <X size={22} aria-hidden="true" />
             </button>
           </div>
 
           <nav className="shell-nav" aria-label="Main menu">
-            {navItems(closeDrawer)}
+            <NavItems
+              links={links}
+              onNavigate={closeDrawer}
+              onLogout={onLogout}
+            />
           </nav>
         </div>
       )}
