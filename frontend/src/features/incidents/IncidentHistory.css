@@ -21,8 +21,23 @@
 }
 
 .history-search {
+  /* 280px basis keeps the whole placeholder readable; where search and
+     filter do not both fit, the filter wraps to the next row. */
   flex: 1 1 280px;
   max-width: 420px;
+}
+
+.history-filter {
+  flex: 0 1 220px;
+}
+
+@media (max-width: 767px) {
+  /* Full width on a phone, one per row. */
+  .history-search,
+  .history-filter {
+    flex-basis: 100%;
+    max-width: none;
+  }
 }
 
 /* =========================

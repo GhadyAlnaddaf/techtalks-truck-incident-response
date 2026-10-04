@@ -4,10 +4,13 @@ import "./IncidentHistory.css";
 
 import { fetchIncidents, fetchIncidentHistory } from "../../incidentsApi";
 import StatusBadge from "./StatusBadge";
+import { filterByStatus, getStatusOptions } from "./incidentStatusFilter";
 
 function IncidentHistory() {
   const [incidents, setIncidents] = useState([]);
   const [search, setSearch] = useState("");
+  // "" means all statuses.
+  const [statusFilter, setStatusFilter] = useState("");
   const [openIncident, setOpenIncident] = useState(null);
 
   const [loading, setLoading] = useState(true);
@@ -171,11 +174,16 @@ function IncidentHistory() {
   }
 
   /*
-   * The open incident's details, shown below the table as on the
-   * dashboard. Taken from the filtered list, so (as before) an incident
-   * the search hides is not shown.
+   * The search result, narrowed by the status filter.
    */
-  const openDetails = filteredIncidents.find(
+  const visibleIncidents = filterByStatus(filteredIncidents, statusFilter);
+
+  /*
+   * The open incident's details, shown below the table as on the
+   * dashboard. Taken from the visible list, so (as before) an incident
+   * the search or filter hides is not shown.
+   */
+  const openDetails = visibleIncidents.find(
     (incident) => incident.id === openIncident,
   );
 
@@ -203,6 +211,27 @@ function IncidentHistory() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <div className="field history-filter">
+            <label className="field-label" htmlFor="history-status">
+              Status
+            </label>
+
+            <select
+              id="history-status"
+              className="input"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">All statuses</option>
+
+              {getStatusOptions(incidents).map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* =========================
@@ -224,7 +253,7 @@ function IncidentHistory() {
             </span>
           </div>
 
-          {filteredIncidents.length > 0 ? (
+          {visibleIncidents.length > 0 ? (
             <div className="table-scroll">
               <table className="table incident-table">
                 <thead>
@@ -238,7 +267,7 @@ function IncidentHistory() {
                 </thead>
 
                 <tbody>
-                  {filteredIncidents.map((incident) => {
+                  {visibleIncidents.map((incident) => {
                     const isOpen = openIncident === incident.id;
 
                     return (
@@ -301,7 +330,7 @@ function IncidentHistory() {
               <p>
                 {incidents.length === 0
                   ? "There are no incidents in the database yet."
-                  : "Try another search."}
+                  : "Try another search or status."}
               </p>
             </div>
           )}
