@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { Clock, FilePlus, LayoutDashboard, Menu, Truck, X } from "lucide-react";
+import { Clock, FilePlus, LayoutDashboard, Menu, X } from "lucide-react";
 
+import Brand from "./Brand";
 import "./AppShell.css";
 
 /**
@@ -18,15 +19,6 @@ const NAV_ITEMS = [
   { to: "/dispatcher", label: "Dashboard", icon: LayoutDashboard },
   { to: "/history", label: "History", icon: Clock },
 ];
-
-function Brand() {
-  return (
-    <span className="shell-brand">
-      <Truck size={22} aria-hidden="true" />
-      <span className="shell-brand-name">Truck Response</span>
-    </span>
-  );
-}
 
 function AppShell({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
