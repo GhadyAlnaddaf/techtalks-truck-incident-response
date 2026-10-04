@@ -67,7 +67,7 @@ const validateAll = (values) => {
  */
 function FieldError({ id, message }) {
   return (
-    <p className="field-error incident-form-field-error" id={id}>
+    <p className="field-error field-error-line" id={id}>
       {message && (
         <>
           <span className="visually-hidden">Error: </span>
