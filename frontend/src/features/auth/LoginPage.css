@@ -1,0 +1,100 @@
+/* Login page (TIR-61).
+
+   Mobile-first: drivers sign in on a phone. There is no login screen in
+   docs/design/ui-mockup.jpeg, so this is built from the app's own parts:
+   the navy brand surface from the shell, a white .card, and the shared
+   .field / .input / .btn / .alert classes from index.css. Only the layout
+   specific to this page lives here. */
+
+.login {
+  display: flex;
+  min-height: 100svh;
+  padding: var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .login {
+    /* Same gutter as .page on a phone. */
+    padding: var(--space-4);
+  }
+}
+
+.login-card {
+  /* margin: auto centres the card but, unlike justify-content: center,
+     never pushes its top out of reach when the viewport is shorter than
+     the card. */
+  width: 100%;
+  max-width: 400px;
+  margin: auto;
+  overflow: hidden;
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  min-height: var(--topbar-height);
+  padding: var(--space-3) var(--space-5);
+  background: var(--color-sidebar);
+}
+
+.login-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .login-brand {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .login-body {
+    padding: var(--space-5) var(--space-4);
+  }
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* =========================
+   PASSWORD + SHOW/HIDE
+   ========================= */
+
+.login-password {
+  position: relative;
+}
+
+.login-password .input {
+  /* Room for the toggle, so typed text never runs underneath it. */
+  padding-right: calc(var(--control-height) + var(--space-1));
+}
+
+.login-password-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  padding: 0;
+  border: none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.login-password-toggle:hover {
+  color: var(--color-text);
+}
+
+.login-submit {
+  width: 100%;
+  margin-top: var(--space-1);
+}
