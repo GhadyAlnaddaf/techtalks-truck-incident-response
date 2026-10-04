@@ -324,6 +324,7 @@ function IncidentReportForm() {
         <button
           className="btn btn-primary incident-form-submit"
           type="submit"
+          aria-busy={submitting || undefined}
         >
           {submitting ? 'Submitting...' : 'Submit report'}
         </button>

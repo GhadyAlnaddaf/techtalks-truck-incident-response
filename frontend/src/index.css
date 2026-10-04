@@ -289,6 +289,16 @@ a:hover {
   opacity: 0.55;
 }
 
+/* Loading is not unavailable. A button marked aria-busy="true" while its
+   request runs keeps full contrast, because its label ("Signing in...")
+   is the status; it may also be disabled to block a second submit. The
+   dimmed style above stays for buttons that truly cannot be used. */
+.btn[aria-busy="true"],
+.btn[aria-busy="true"]:disabled {
+  cursor: progress;
+  opacity: 1;
+}
+
 .btn-primary {
   background: var(--color-primary);
   color: var(--color-text-invert);

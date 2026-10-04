@@ -171,6 +171,7 @@ function LoginPage({ onSubmit, loading = false, error = null }) {
               className="btn btn-primary login-submit"
               type="submit"
               disabled={loading}
+              aria-busy={loading || undefined}
             >
               {loading ? "Signing in..." : "Sign in"}
             </button>
