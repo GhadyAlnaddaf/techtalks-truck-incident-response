@@ -8,13 +8,42 @@ from .models import AssistanceContact, Incident, IncidentHistory
 User = get_user_model()
 
 def get_user_role(user):
-    return getattr(user, "role", None)
+    if not hasattr(user, "role"):
+        return None
+
+    return user.get_role_display()
 
 def require_authentication(request):
     if not request.user.is_authenticated:
         return JsonResponse(
             {"message": "Authentication required"},
             status=401,
+        )
+
+    return None
+
+def require_dispatcher(request):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
+    if request.user.role != User.Role.DISPATCHER:
+        return JsonResponse(
+            {"message": "Dispatcher access required"},
+            status=403,
+        )
+
+    return None
+
+def require_truck_driver(request):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
+    if request.user.role != User.Role.TRUCK_DRIVER:
+        return JsonResponse(
+            {"message": "Truck Driver access required"},
+            status=403,
         )
 
     return None
@@ -200,9 +229,9 @@ def incident_to_dict(incident):
 
 
 def create_incident(request):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_truck_driver(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "POST":
         return JsonResponse(
@@ -315,9 +344,9 @@ def create_incident(request):
 
 
 def get_incidents(request):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_dispatcher(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "GET":
         return JsonResponse(
@@ -343,9 +372,9 @@ def get_incidents(request):
 
 
 def get_incident(request, incident_id):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_dispatcher(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "GET":
         return JsonResponse(
@@ -371,9 +400,9 @@ def get_incident(request, incident_id):
     )
 
 def get_incident_history(request, incident_id):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_dispatcher(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "GET":
         return JsonResponse(
@@ -415,9 +444,9 @@ def get_incident_history(request, incident_id):
     )
 
 def status_update(request, incident_id):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_dispatcher(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "PATCH":
         return JsonResponse(
@@ -501,9 +530,9 @@ def status_update(request, incident_id):
 
 
 def assistance_update(request, incident_id):
-    auth_error = require_authentication(request)
-    if auth_error:
-        return auth_error
+    permission_error = require_dispatcher(request)
+    if permission_error:
+        return permission_error
 
     if request.method != "PATCH":
         return JsonResponse(
