@@ -107,18 +107,12 @@
   min-width: 0;
 }
 
-/* The API sends event types like STATUS_CHANGED and the markup swaps the
-   underscores for spaces; this shows it as "Status changed". */
+/* The label comes from formatEventType, as real text. */
 .history-event-type {
   display: block;
   color: var(--color-text);
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
-  text-transform: lowercase;
-}
-
-.history-event-type::first-letter {
-  text-transform: uppercase;
 }
 
 .history-event-content p {

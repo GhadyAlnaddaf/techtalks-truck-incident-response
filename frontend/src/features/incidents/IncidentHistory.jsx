@@ -5,6 +5,7 @@ import "./IncidentHistory.css";
 import { fetchIncidents, fetchIncidentHistory } from "../../incidentsApi";
 import StatusBadge from "./StatusBadge";
 import { filterByStatus, getStatusOptions } from "./incidentStatusFilter";
+import { formatEventType } from "./formatEventType";
 
 function IncidentHistory() {
   const [incidents, setIncidents] = useState([]);
@@ -460,7 +461,7 @@ function IncidentHistory() {
 
                       <div className="history-event-content">
                         <strong className="history-event-type">
-                          {String(event.event_type || "").replaceAll("_", " ")}
+                          {formatEventType(event.event_type)}
                         </strong>
 
                         <p>{event.details || "No event details available."}</p>
