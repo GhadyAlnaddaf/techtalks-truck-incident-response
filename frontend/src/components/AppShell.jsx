@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { Clock, FilePlus, LayoutDashboard, Menu, X } from "lucide-react";
 
 import Brand from "./Brand";
@@ -7,8 +7,9 @@ import "./AppShell.css";
 
 /**
  * The app shell (TIR-54): navy sidebar on desktop, top bar plus drawer
- * below 768px. Presentational only -- it renders whatever page the router
- * puts inside it and owns no state beyond the drawer.
+ * below 768px. Presentational only -- it is a layout route in App.jsx,
+ * renders the matched page through <Outlet />, and owns no state beyond
+ * the drawer.
  *
  * EXTENSION POINT: the sidebar and the drawer are both rendered from this
  * one array, so adding a page later is a single entry here. It links only
@@ -20,7 +21,7 @@ const NAV_ITEMS = [
   { to: "/history", label: "History", icon: Clock },
 ];
 
-function AppShell({ children }) {
+function AppShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const closeDrawer = () => setDrawerOpen(false);
@@ -107,7 +108,9 @@ function AppShell({ children }) {
         </div>
       )}
 
-      <main className="shell-main">{children}</main>
+      <main className="shell-main">
+        <Outlet />
+      </main>
     </div>
   );
 }
