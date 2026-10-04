@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { X } from "lucide-react";
 import "./IncidentHistory.css";
 
 import { fetchIncidents, fetchIncidentHistory } from "../../incidentsApi";
+import StatusBadge from "./StatusBadge";
 
 function IncidentHistory() {
   const [incidents, setIncidents] = useState([]);
@@ -141,16 +143,11 @@ function IncidentHistory() {
    */
   if (loading) {
     return (
-      <div className="history-page">
-        <div className="history-page-header">
-          <div>
-            <h1>Incident History</h1>
-            <p>View the complete history of previously reported incidents.</p>
-          </div>
-        </div>
+      <div className="page history-page">
+        <HistoryHeader />
 
-        <div className="history-empty">
-          <h2>Loading incident history...</h2>
+        <div className="card state">
+          <p className="state-title">Loading incident history...</p>
           <p>Please wait while the incidents are loaded.</p>
         </div>
       </div>
@@ -162,223 +159,282 @@ function IncidentHistory() {
    */
   if (error) {
     return (
-      <div className="history-page">
-        <div className="history-page-header">
-          <div>
-            <h1>Incident History</h1>
-            <p>View the complete history of previously reported incidents.</p>
-          </div>
-        </div>
+      <div className="page history-page">
+        <HistoryHeader />
 
-        <div className="history-empty">
-          <h2>Unable to load incidents</h2>
+        <div className="card state" role="alert">
+          <p className="state-title">Unable to load incidents</p>
           <p>{error}</p>
         </div>
       </div>
     );
   }
 
+  /*
+   * The open incident's details, shown below the table as on the
+   * dashboard. Taken from the filtered list, so (as before) an incident
+   * the search hides is not shown.
+   */
+  const openDetails = filteredIncidents.find(
+    (incident) => incident.id === openIncident,
+  );
+
   return (
-    <div className="history-page">
-      {/* =========================
-          HEADER
-         ========================= */}
+    <div className="page history-page">
+      <HistoryHeader />
 
-      <div className="history-page-header">
-        <div>
-          <h1>Incident History</h1>
+      <div className="incident-management">
+        {/* =========================
+            SEARCH
+           ========================= */}
 
-          <p>View the complete history of previously reported incidents.</p>
+        <div className="history-toolbar">
+          <div className="field history-search">
+            <label className="field-label" htmlFor="history-search">
+              Search incidents
+            </label>
+
+            <input
+              id="history-search"
+              className="input"
+              type="text"
+              placeholder="Search by truck, location, status..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
         </div>
 
-        <div className="history-total">
-          {incidents.length} {incidents.length === 1 ? "Incident" : "Incidents"}
+        {/* =========================
+            INCIDENT TABLE
+           ========================= */}
+
+        <div className="card incident-table-container">
+          <div className="card-header">
+            <div>
+              <h2 className="card-title">Incidents</h2>
+
+              <p className="card-subtitle">
+                Select an incident to view its details and events.
+              </p>
+            </div>
+
+            <span className="incident-count">
+              {incidents.length} {incidents.length === 1 ? "incident" : "incidents"}
+            </span>
+          </div>
+
+          {filteredIncidents.length > 0 ? (
+            <div className="table-scroll">
+              <table className="table incident-table">
+                <thead>
+                  <tr>
+                    <th>Reported</th>
+                    <th>Truck ID</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {filteredIncidents.map((incident) => {
+                    const isOpen = openIncident === incident.id;
+
+                    return (
+                      <tr
+                        key={incident.id}
+                        onClick={() => toggleIncident(incident.id)}
+                        className={isOpen ? "selected-row" : undefined}
+                      >
+                        <td className="cell-muted cell-nowrap">
+                          {formatDate(incident.created_at)}
+                        </td>
+
+                        <td className="cell-strong">
+                          <span className="cell-truncate" title={incident.truck_id}>
+                            {incident.truck_id}
+                          </span>
+                        </td>
+
+                        <td>
+                          <span className="cell-truncate" title={incident.location}>
+                            {incident.location}
+                          </span>
+                        </td>
+
+                        <td>
+                          <StatusBadge status={incident.status} />
+                        </td>
+
+                        <td>
+                          {/* No handler of its own: the click bubbles to the
+                              row, which opens and closes the details. This
+                              makes that action visible and reachable by
+                              keyboard. */}
+                          <button
+                            type="button"
+                            className="table-link"
+                            aria-expanded={isOpen}
+                          >
+                            View
+                            <span aria-hidden="true">&rarr;</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            /* =========================
+               EMPTY RESULT
+               ========================= */
+            <div className="state">
+              <p className="state-title">
+                {incidents.length === 0
+                  ? "No incidents found"
+                  : "No matching incidents"}
+              </p>
+
+              <p>
+                {incidents.length === 0
+                  ? "There are no incidents in the database yet."
+                  : "Try another search."}
+              </p>
+            </div>
+          )}
         </div>
-      </div>
 
-      {/* =========================
-          SEARCH
-         ========================= */}
+        {/* =========================
+            INCIDENT DETAILS
+           ========================= */}
 
-      <div className="history-toolbar">
-        <input
-          type="text"
-          placeholder="Search by truck, location, status..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
+        {openDetails && (
+          <div className="card incident-details">
+            <div className="details-header">
+              <div>
+                <span className="details-label">Selected Incident</span>
 
-      {/* =========================
-          INCIDENT LIST
-         ========================= */}
-
-      <div className="history-list">
-        {filteredIncidents.map((incident) => {
-          const isOpen = openIncident === incident.id;
-
-          const assistanceContact = incident.assigned_assistance_contact;
-
-          const history = incident.history || [];
-
-          return (
-            <div className="history-card" key={incident.id}>
-              {/* =========================
-                  CARD HEADER
-                 ========================= */}
+                <h2>Incident #{openDetails.id}</h2>
+              </div>
 
               <button
                 type="button"
-                className="history-card-header"
-                onClick={() => toggleIncident(incident.id)}
+                className="btn btn-secondary close-button"
+                onClick={() => toggleIncident(openDetails.id)}
+                aria-label="Close incident details"
               >
-                <div className="history-card-main">
-                  <div className="history-incident-icon">
-                    {String(incident.truck_id || "").replace("#", "")}
-                  </div>
-
-                  <div className="history-id-row">
-                    <h2>
-                      Truck {incident.truck_id}
-                      <span className="history-resolved-badge">
-                        {incident.status}
-                      </span>
-                    </h2>
-
-                    <p>{incident.location}</p>
-                  </div>
-                </div>
-
-                <div className="history-card-arrow">{isOpen ? "▲" : "▼"}</div>
+                <X size={20} aria-hidden="true" />
               </button>
+            </div>
 
-              {/* =========================
-                  BASIC INCIDENT INFORMATION
-                 ========================= */}
-
-              <div className="history-details">
-                <div>
-                  <span>Truck ID</span>
-                  <strong>{incident.truck_id || "—"}</strong>
-                </div>
-
-                <div>
-                  <span>Location</span>
-                  <strong>{incident.location || "—"}</strong>
-                </div>
-
-                <div>
-                  <span>Status</span>
-                  <strong>{incident.status || "—"}</strong>
-                </div>
-
-                <div>
-                  <span>Created</span>
-                  <strong>{formatDate(incident.created_at)}</strong>
-                </div>
-
-                <div>
-                  <span>Updated</span>
-                  <strong>{formatDate(incident.updated_at)}</strong>
-                </div>
+            <div className="details-grid">
+              <div className="detail-item">
+                <span>Truck ID</span>
+                <strong>{openDetails.truck_id || "—"}</strong>
               </div>
 
-              {/* =========================
-                  EXPANDED INFORMATION
-                 ========================= */}
+              <div className="detail-item">
+                <span>Location</span>
+                <strong>{openDetails.location || "—"}</strong>
+              </div>
 
-              {isOpen && (
-                <div className="history-expanded">
-                  {/* Description */}
+              <div className="detail-item">
+                <span>Status</span>
+                <StatusBadge status={openDetails.status} />
+              </div>
 
-                  <div className="history-description">
-                    <h3>Description</h3>
+              <div className="detail-item">
+                <span>Reported</span>
+                <strong>{formatDate(openDetails.created_at)}</strong>
+              </div>
 
-                    <p>{incident.description || "No description available."}</p>
-                  </div>
+              <div className="detail-item">
+                <span>Updated</span>
+                <strong>{formatDate(openDetails.updated_at)}</strong>
+              </div>
 
-                  {/* Assistance Contact */}
+              <div className="detail-item full-width">
+                <span>Description</span>
+                <strong>
+                  {openDetails.description || "No description available."}
+                </strong>
+              </div>
+            </div>
 
-                  <div className="history-assistance">
-                    <h3>Assigned Assistance</h3>
+            {/* Assistance Contact */}
 
-                    {assistanceContact ? (
-                      <>
-                        <p>
-                          <strong>{assistanceContact.name}</strong>
-                        </p>
+            <div className="control-section">
+              <h3>Assigned Assistance</h3>
 
-                        <p>
-                          Phone:{" "}
-                          {incident.assistance_contact_phone ||
-                            assistanceContact.phone ||
-                            "—"}
-                        </p>
+              {openDetails.assigned_assistance_contact ? (
+                <div className="current-assignment">
+                  <strong>{openDetails.assigned_assistance_contact.name}</strong>
 
-                        <p>Email: {assistanceContact.email || "—"}</p>
-                      </>
-                    ) : (
-                      <p>No assistance contact assigned.</p>
-                    )}
-                  </div>
+                  <span>
+                    Phone:{" "}
+                    {openDetails.assistance_contact_phone ||
+                      openDetails.assigned_assistance_contact.phone ||
+                      "—"}
+                  </span>
 
-                  {/* Incident History */}
-
-                  <div className="history-events">
-                    <h3>Incident Events</h3>
-
-                    {history.length > 0 ? (
-                      history.map((event) => (
-                        <div className="history-event" key={event.id}>
-                          <div className="history-event-marker">●</div>
-
-                          <div className="history-event-content">
-                            <strong>
-                              {String(event.event_type || "").replaceAll(
-                                "_",
-                                " ",
-                              )}
-                            </strong>
-
-                            <p>
-                              {event.details || "No event details available."}
-                            </p>
-
-                            <span>{formatDate(event.created_at)}</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p>No history events recorded for this incident.</p>
-                    )}
-                  </div>
+                  <span>
+                    Email: {openDetails.assigned_assistance_contact.email || "—"}
+                  </span>
                 </div>
+              ) : (
+                <p>No assistance contact assigned.</p>
               )}
             </div>
-          );
-        })}
 
-        {/* =========================
-            EMPTY RESULT
-           ========================= */}
+            {/* Incident History */}
 
-        {filteredIncidents.length === 0 && (
-          <div className="history-empty">
-            <h2>
-              {incidents.length === 0
-                ? "No incidents found"
-                : "No matching incidents"}
-            </h2>
+            <div className="control-section">
+              <h3>Incident Events</h3>
 
-            <p>
-              {incidents.length === 0
-                ? "There are no incidents in the database yet."
-                : "Try another search."}
-            </p>
+              {(openDetails.history || []).length > 0 ? (
+                <ol className="history-timeline">
+                  {openDetails.history.map((event) => (
+                    <li className="history-event" key={event.id}>
+                      <span className="history-event-marker" aria-hidden="true" />
+
+                      <div className="history-event-content">
+                        <strong className="history-event-type">
+                          {String(event.event_type || "").replaceAll("_", " ")}
+                        </strong>
+
+                        <p>{event.details || "No event details available."}</p>
+
+                        <span className="history-event-time">
+                          {formatDate(event.created_at)}
+                        </span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p>No history events recorded for this incident.</p>
+              )}
+            </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+/** Page title and subtitle, the same in the loading, error and loaded views. */
+function HistoryHeader() {
+  return (
+    <header className="page-header">
+      <h1 className="page-title">Incident History</h1>
+
+      <p className="page-subtitle">
+        View the complete history of previously reported incidents.
+      </p>
+    </header>
   );
 }
 

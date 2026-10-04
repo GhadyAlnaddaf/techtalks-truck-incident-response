@@ -244,8 +244,6 @@ Designed for, deliberately not built yet:
 - No Tailwind, no component libraries, no CSS frameworks. Plain CSS with these
   tokens.
 - Every text/background pair must reach 4.5:1 contrast.
-- The incident history page (`src/features/incidents/IncidentHistory.*`, TIR-53)
-  is intentionally **outside** this system and still carries its own dark
-  styling. `index.css` pins browser defaults inside `.history-page` so global
-  changes cannot alter how it renders. Do not restyle it as a side effect of
-  other work.
+- Every page, including incident history, is on this system. The history page
+  reuses the dashboard's table, pill and details-panel classes, so the two
+  tables look identical; keep it that way rather than giving it its own.

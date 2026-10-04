@@ -551,30 +551,3 @@ textarea.input {
   white-space: nowrap;
   border: 0;
 }
-
-/* =====================================================================
-   TIR-53 incident history page (Salam) — NOT restyled by TIR-54.
-
-   It predates this stylesheet and still relies on browser defaults for
-   anything its own CSS does not set. These rules pin those defaults
-   inside .history-page so the rewrite above cannot change how it
-   renders. Its own rules are more specific, so they still win.
-   Do not add styling here.
-   ===================================================================== */
-
-.history-page :where(p, h1, h2, h3, h4, ul, ol) {
-  margin: revert;
-}
-
-.history-page :where(h1, h2, h3, h4) {
-  font-size: revert;
-  font-weight: revert;
-}
-
-.history-page :where(button, input, select, textarea) {
-  font: revert;
-}
-
-.history-page * {
-  box-sizing: content-box;
-}
