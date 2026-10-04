@@ -1,10 +1,23 @@
 import json
 
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
+from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.views.decorators.csrf import ensure_csrf_cookie
 from .models import AssistanceContact, Incident, IncidentHistory
 
+User = get_user_model()
+
+def get_user_role(user):
+    return getattr(user, "role", None)
+
+def require_authentication(request):
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Authentication required"},
+            status=401,
+        )
+
+    return None
 
 VALID_STATUSES = [
     "Pending",
@@ -14,6 +27,142 @@ VALID_STATUSES = [
     "Resolved",
 ]
 
+@ensure_csrf_cookie
+def csrf_token(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {"message": "Only GET requests are allowed"},
+            status=405,
+        )
+
+    return JsonResponse(
+        {"message": "CSRF cookie set"},
+        status=200,
+    )
+
+def login_user(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"message": "Only POST requests are allowed"},
+            status=405,
+        )
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {"message": "Invalid JSON"},
+            status=400,
+        )
+
+    if not isinstance(data, dict):
+        return JsonResponse(
+            {"message": "JSON data must be an object"},
+            status=400,
+        )
+
+    identifier = data.get("identifier")
+    password = data.get("password")
+
+    if not isinstance(identifier, str) or identifier.strip() == "":
+        return JsonResponse(
+            {"message": "Username or email is required"},
+            status=400,
+        )
+
+    if not isinstance(password, str) or password == "":
+        return JsonResponse(
+            {"message": "Password is required"},
+            status=400,
+        )
+
+    identifier = identifier.strip()
+    username = identifier
+
+    if "@" in identifier:
+        users = User.objects.filter(email__iexact=identifier)
+
+        if users.count() != 1:
+            return JsonResponse(
+                {"message": "Invalid username/email or password"},
+                status=401,
+            )
+
+        username = users.first().get_username()
+
+    user = authenticate(
+        request,
+        username=username,
+        password=password,
+    )
+
+    if user is None:
+        return JsonResponse(
+            {"message": "Invalid username/email or password"},
+            status=401,
+        )
+
+    login(request, user)
+
+    return JsonResponse(
+        {
+            "message": "Login successful",
+            "user": {
+                "id": user.id,
+                "username": user.get_username(),
+                "email": user.email,
+                "role": get_user_role(user),
+            },
+        },
+        status=200,
+    )
+
+def current_user(request):
+    if request.method != "GET":
+        return JsonResponse(
+            {"message": "Only GET requests are allowed"},
+            status=405,
+        )
+
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Authentication required"},
+            status=401,
+        )
+
+    user = request.user
+
+    return JsonResponse(
+        {
+            "user": {
+                "id": user.id,
+                "username": user.get_username(),
+                "email": user.email,
+                "role": get_user_role(user),
+            }
+        },
+        status=200,
+    )
+
+def logout_user(request):
+    if request.method != "POST":
+        return JsonResponse(
+            {"message": "Only POST requests are allowed"},
+            status=405,
+        )
+
+    if not request.user.is_authenticated:
+        return JsonResponse(
+            {"message": "Authentication required"},
+            status=401,
+        )
+
+    logout(request)
+
+    return JsonResponse(
+        {"message": "Logout successful"},
+        status=200,
+    )
 
 def home(request):
     return JsonResponse({
@@ -50,8 +199,11 @@ def incident_to_dict(incident):
     }
 
 
-@csrf_exempt
 def create_incident(request):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "POST":
         return JsonResponse(
             {
@@ -163,6 +315,10 @@ def create_incident(request):
 
 
 def get_incidents(request):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "GET":
         return JsonResponse(
             {
@@ -187,6 +343,10 @@ def get_incidents(request):
 
 
 def get_incident(request, incident_id):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "GET":
         return JsonResponse(
             {
@@ -210,8 +370,11 @@ def get_incident(request, incident_id):
         status=200,
     )
 
-@csrf_exempt
 def get_incident_history(request, incident_id):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "GET":
         return JsonResponse(
             {
@@ -251,8 +414,11 @@ def get_incident_history(request, incident_id):
         status=200,
     )
 
-@csrf_exempt
 def status_update(request, incident_id):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "PATCH":
         return JsonResponse(
             {
@@ -334,8 +500,11 @@ def status_update(request, incident_id):
     )
 
 
-@csrf_exempt
 def assistance_update(request, incident_id):
+    auth_error = require_authentication(request)
+    if auth_error:
+        return auth_error
+
     if request.method != "PATCH":
         return JsonResponse(
             {
