@@ -19,11 +19,20 @@ import "./LoginPage.css";
  *                             the fields.
  */
 
+/**
+ * Always rendered, so its line of height is reserved and a message
+ * appearing never pushes the fields below it down -- the same pattern as
+ * the incident form.
+ */
 function FieldError({ id, message }) {
   return (
-    <p className="field-error" id={id}>
-      <span className="visually-hidden">Error: </span>
-      {message}
+    <p className="field-error field-error-line" id={id}>
+      {message && (
+        <>
+          <span className="visually-hidden">Error: </span>
+          {message}
+        </>
+      )}
     </p>
   );
 }
@@ -110,12 +119,10 @@ function LoginPage({ onSubmit, loading = false, error = null }) {
                 required
               />
 
-              {fieldErrors.identifier && (
-                <FieldError
-                  id="login-identifier-error"
-                  message={fieldErrors.identifier}
-                />
-              )}
+              <FieldError
+                id="login-identifier-error"
+                message={fieldErrors.identifier}
+              />
             </div>
 
             <div className="field">
@@ -154,12 +161,10 @@ function LoginPage({ onSubmit, loading = false, error = null }) {
                 </button>
               </div>
 
-              {fieldErrors.password && (
-                <FieldError
-                  id="login-password-error"
-                  message={fieldErrors.password}
-                />
-              )}
+              <FieldError
+                id="login-password-error"
+                message={fieldErrors.password}
+              />
             </div>
 
             <button

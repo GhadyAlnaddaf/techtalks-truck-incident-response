@@ -399,6 +399,15 @@ textarea.input {
   font-weight: var(--weight-semibold);
 }
 
+/* Add to an error element that is always rendered, with the message put
+   inside only when there is one. One line stays reserved, so a message
+   appearing never pushes the fields below it down. Whole pixels, so the
+   empty slot and a line of text come out exactly the same height. */
+.field-error-line {
+  min-height: 20px;
+  line-height: 20px;
+}
+
 /* =====================================================================
    Tables
 
