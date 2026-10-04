@@ -34,9 +34,9 @@ function LoginPreview() {
   return <LoginPage onSubmit={handleSubmit} loading={loading} error={error} />;
 }
 
-// Defaults to truck_driver; ?role=dispatcher or ?role=truck_driver
-// overrides it. Read once when the app loads, so it survives navigating
-// between pages.
+// Defaults to the truck driver role; ?role=Dispatcher or
+// ?role=Truck+Driver overrides it. Read once when the app loads, so it
+// survives navigating between pages.
 const requestedRole = new URLSearchParams(window.location.search).get("role");
 const PREVIEW_ROLE = Object.values(ROLES).includes(requestedRole)
   ? requestedRole

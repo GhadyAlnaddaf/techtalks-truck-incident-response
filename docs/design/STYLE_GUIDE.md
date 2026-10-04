@@ -146,8 +146,9 @@ the caller makes the request.
 
 ### Roles
 
-`src/features/auth/roles.js` exports `ROLES`, the exact values stored in
-`User.role`. Import it; never write the role strings anywhere else.
+`src/features/auth/roles.js` exports `ROLES`, the exact role values the login
+API returns: the display labels `Truck Driver` and `Dispatcher`, not the stored
+`User.role` values. Import it; never write the role strings anywhere else.
 
 ### `Pill`
 

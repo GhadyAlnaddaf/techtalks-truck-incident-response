@@ -28,9 +28,15 @@ describe("getNavLinks", () => {
     assert.deepEqual(getNavLinks("admin"), []);
   });
 
-  test("matches the stored values exactly, so case differences are unknown", () => {
-    assert.deepEqual(getNavLinks("Dispatcher"), []);
-    assert.deepEqual(getNavLinks("TRUCK_DRIVER"), []);
+  test("matches the role values exactly, so case and spacing differences are unknown", () => {
+    assert.deepEqual(getNavLinks(ROLES.DISPATCHER.toLowerCase()), []);
+    assert.deepEqual(getNavLinks(ROLES.TRUCK_DRIVER.toUpperCase()), []);
+    assert.deepEqual(getNavLinks(` ${ROLES.DISPATCHER} `), []);
+  });
+
+  test("treats the old stored values (before the API labels) as unknown roles", () => {
+    assert.deepEqual(getNavLinks("truck_driver"), []);
+    assert.deepEqual(getNavLinks("dispatcher"), []);
   });
 
   test("does not treat built-in object keys as roles", () => {
