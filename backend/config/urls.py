@@ -23,10 +23,20 @@ from incidents.views import (
     status_update,
     assistance_update,
     get_incident_history,
+    csrf_token,
+    login_user,
+    current_user,
+    logout_user,
 )
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+
+    path("api/auth/csrf/", csrf_token),
+    path("api/auth/login/", login_user),
+    path("api/auth/me/", current_user),
+    path("api/auth/logout/", logout_user),
+
     path("api/incidents/", create_incident),
     path("api/incidents/list/", get_incidents),
     path("api/incidents/<int:incident_id>/", get_incident),
