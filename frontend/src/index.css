@@ -289,6 +289,16 @@ a:hover {
   opacity: 0.55;
 }
 
+/* Loading is not unavailable. A button marked aria-busy="true" while its
+   request runs keeps full contrast, because its label ("Signing in...")
+   is the status; it may also be disabled to block a second submit. The
+   dimmed style above stays for buttons that truly cannot be used. */
+.btn[aria-busy="true"],
+.btn[aria-busy="true"]:disabled {
+  cursor: progress;
+  opacity: 1;
+}
+
 .btn-primary {
   background: var(--color-primary);
   color: var(--color-text-invert);
@@ -397,6 +407,15 @@ textarea.input {
   color: var(--color-danger);
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
+}
+
+/* Add to an error element that is always rendered, with the message put
+   inside only when there is one. One line stays reserved, so a message
+   appearing never pushes the fields below it down. Whole pixels, so the
+   empty slot and a line of text come out exactly the same height. */
+.field-error-line {
+  min-height: 20px;
+  line-height: 20px;
 }
 
 /* =====================================================================
@@ -541,31 +560,4 @@ textarea.input {
   clip-path: inset(50%);
   white-space: nowrap;
   border: 0;
-}
-
-/* =====================================================================
-   TIR-53 incident history page (Salam) — NOT restyled by TIR-54.
-
-   It predates this stylesheet and still relies on browser defaults for
-   anything its own CSS does not set. These rules pin those defaults
-   inside .history-page so the rewrite above cannot change how it
-   renders. Its own rules are more specific, so they still win.
-   Do not add styling here.
-   ===================================================================== */
-
-.history-page :where(p, h1, h2, h3, h4, ul, ol) {
-  margin: revert;
-}
-
-.history-page :where(h1, h2, h3, h4) {
-  font-size: revert;
-  font-weight: revert;
-}
-
-.history-page :where(button, input, select, textarea) {
-  font: revert;
-}
-
-.history-page * {
-  box-sizing: content-box;
 }

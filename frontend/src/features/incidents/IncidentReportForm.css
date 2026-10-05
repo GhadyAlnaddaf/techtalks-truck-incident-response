@@ -25,14 +25,6 @@
   font-weight: var(--weight-semibold);
 }
 
-.incident-form-field-error {
-  /* Always rendered with one line reserved, so a message appearing never
-     pushes the fields below it down. Whole pixels, so the empty slot and a
-     line of text come out exactly the same height. */
-  min-height: 20px;
-  line-height: 20px;
-}
-
 .incident-form-submit {
   width: 100%;
   margin-top: var(--space-1);

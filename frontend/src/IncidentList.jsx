@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { X } from "lucide-react";
 
 import { assignAssistance, updateIncidentStatus } from "./incidentsApi";
 
@@ -370,7 +371,7 @@ function IncidentList({ incidents, setIncidents }) {
                   onClick={() => setSelectedIncidentId(null)}
                   aria-label="Close incident details"
                 >
-                  ×
+                  <X size={20} aria-hidden="true" />
                 </button>
               </div>
 
@@ -424,7 +425,14 @@ function IncidentList({ incidents, setIncidents }) {
                 <p>Select an available assistance contact for this incident.</p>
 
                 <div className="control-row">
+                  {/* Visually hidden: the heading above already says what
+                      this is, and a visible label would change the row. */}
+                  <label className="visually-hidden" htmlFor="assistance-contact">
+                    Assistance contact
+                  </label>
+
                   <select
+                    id="assistance-contact"
                     className="input"
                     value={selectedAssistance}
                     onChange={(e) => setSelectedAssistance(e.target.value)}
@@ -467,7 +475,12 @@ function IncidentList({ incidents, setIncidents }) {
                 <p>Select the new status for this incident.</p>
 
                 <div className="control-row">
+                  <label className="visually-hidden" htmlFor="incident-status">
+                    New status
+                  </label>
+
                   <select
+                    id="incident-status"
                     className="input"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}

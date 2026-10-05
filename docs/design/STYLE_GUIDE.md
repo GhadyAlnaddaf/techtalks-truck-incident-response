@@ -115,9 +115,40 @@ Helpers: `.table-link` (blue row action), `.cell-strong`, `.cell-muted`,
 
 ### `AppShell`
 
-`src/components/AppShell.jsx`. Wraps every route in `App.jsx`. Navy sidebar at
-768px and above; top bar plus a full-width drawer below that. The drawer closes
-on navigation and on `Escape`.
+`src/components/AppShell.jsx`. A layout route in `App.jsx`: every page except
+`/login` renders inside it through `<Outlet />`. Navy sidebar at 768px and
+above; top bar plus a full-width drawer below that. The drawer closes on
+navigation and on `Escape`; opening it moves focus to its close button, and
+closing it returns focus to the menu button.
+
+```jsx
+<AppShell role={user.role} onLogout={handleLogout} />
+```
+
+`role` picks the links through `getNavLinks` (`src/components/navLinks.js`);
+a missing or unknown role shows no links. Logout is always the last item and
+only calls `onLogout`.
+
+### `Brand`
+
+`src/components/Brand.jsx`. The product icon and name, white on the navy brand
+surface. The shell and the login page both render it, so a rename or a logo
+is a change to this one file.
+
+### `LoginPage`
+
+`src/features/auth/LoginPage.jsx`. Presentational: it validates and reports,
+the caller makes the request.
+
+```jsx
+<LoginPage onSubmit={({ identifier, password }) => …} loading={…} error={…} />
+```
+
+### Roles
+
+`src/features/auth/roles.js` exports `ROLES`, the exact role values the login
+API returns: the display labels `Truck Driver` and `Dispatcher`, not the stored
+`User.role` values. Import it; never write the role strings anywhere else.
 
 ### `Pill`
 
@@ -194,9 +225,10 @@ any timestamp coming from the API.
 
 Designed for, deliberately not built yet:
 
-- **A new page** — add one entry to `NAV_ITEMS` at the top of `AppShell.jsx`.
-  It appears in both the sidebar and the drawer. Link only to routes that
-  actually exist.
+- **A new page** — add one entry to that role's list in
+  `src/components/navLinks.js` (and an icon key in `NAV_ICONS` in
+  `AppShell.jsx` if it needs a new icon). It appears in both the sidebar and
+  the drawer. Link only to routes that actually exist.
 - **A new badge kind** (urgency, incident type) — wrap `Pill`, exactly as
   `StatusBadge` does. A `--tone-red-*` pair is already defined for "High".
 - **Stat cards or a map** — add another section inside `.dashboard-sections` on
@@ -212,8 +244,6 @@ Designed for, deliberately not built yet:
 - No Tailwind, no component libraries, no CSS frameworks. Plain CSS with these
   tokens.
 - Every text/background pair must reach 4.5:1 contrast.
-- The incident history page (`src/features/incidents/IncidentHistory.*`, TIR-53)
-  is intentionally **outside** this system and still carries its own dark
-  styling. `index.css` pins browser defaults inside `.history-page` so global
-  changes cannot alter how it renders. Do not restyle it as a side effect of
-  other work.
+- Every page, including incident history, is on this system. The history page
+  reuses the dashboard's table, pill and details-panel classes, so the two
+  tables look identical; keep it that way rather than giving it its own.
