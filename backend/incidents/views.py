@@ -2,16 +2,21 @@ import json
 
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
+
 from .models import AssistanceContact, Incident, IncidentHistory
 
+
 User = get_user_model()
+
 
 def get_user_role(user):
     if not hasattr(user, "role"):
         return None
 
     return user.get_role_display()
+
 
 def require_authentication(request):
     if not request.user.is_authenticated:
@@ -22,8 +27,10 @@ def require_authentication(request):
 
     return None
 
+
 def require_dispatcher(request):
     auth_error = require_authentication(request)
+
     if auth_error:
         return auth_error
 
@@ -35,8 +42,10 @@ def require_dispatcher(request):
 
     return None
 
+
 def require_truck_driver(request):
     auth_error = require_authentication(request)
+
     if auth_error:
         return auth_error
 
@@ -48,6 +57,7 @@ def require_truck_driver(request):
 
     return None
 
+
 VALID_STATUSES = [
     "Pending",
     "Assigned",
@@ -55,6 +65,7 @@ VALID_STATUSES = [
     "In progress",
     "Resolved",
 ]
+
 
 @ensure_csrf_cookie
 def csrf_token(request):
@@ -64,10 +75,15 @@ def csrf_token(request):
             status=405,
         )
 
+    token = get_token(request)
+
     return JsonResponse(
-        {"message": "CSRF cookie set"},
+        {
+            "csrfToken": token,
+        },
         status=200,
     )
+
 
 def login_user(request):
     if request.method != "POST":
@@ -146,6 +162,7 @@ def login_user(request):
         status=200,
     )
 
+
 def current_user(request):
     if request.method != "GET":
         return JsonResponse(
@@ -173,6 +190,7 @@ def current_user(request):
         status=200,
     )
 
+
 def logout_user(request):
     if request.method != "POST":
         return JsonResponse(
@@ -192,6 +210,7 @@ def logout_user(request):
         {"message": "Logout successful"},
         status=200,
     )
+
 
 def home(request):
     return JsonResponse({
@@ -230,6 +249,7 @@ def incident_to_dict(incident):
 
 def create_incident(request):
     permission_error = require_truck_driver(request)
+
     if permission_error:
         return permission_error
 
@@ -265,7 +285,6 @@ def create_incident(request):
         "description",
     ]
 
-    # Check required fields
     for key in required_fields:
         if key not in data:
             return JsonResponse(
@@ -275,12 +294,14 @@ def create_incident(request):
                 status=400,
             )
 
-    # Check fields are strings and not empty
     for key in required_fields:
         if not isinstance(data[key], str):
             return JsonResponse(
                 {
-                    "message": f"{key.replace('_', ' ').title()} must be a string"
+                    "message": (
+                        f"{key.replace('_', ' ').title()} "
+                        "must be a string"
+                    )
                 },
                 status=400,
             )
@@ -288,7 +309,10 @@ def create_incident(request):
         if data[key].strip() == "":
             return JsonResponse(
                 {
-                    "message": f"{key.replace('_', ' ').title()} cannot be empty"
+                    "message": (
+                        f"{key.replace('_', ' ').title()} "
+                        "cannot be empty"
+                    )
                 },
                 status=400,
             )
@@ -297,7 +321,6 @@ def create_incident(request):
     location = data["location"].strip()
     description = data["description"].strip()
 
-    # Maximum length validation
     if len(truck_id) > 255:
         return JsonResponse(
             {
@@ -320,7 +343,6 @@ def create_incident(request):
         description=description,
     )
 
-    # Record incident creation in history
     IncidentHistory.objects.create(
         incident=incident,
         event_type="CREATED",
@@ -345,6 +367,7 @@ def create_incident(request):
 
 def get_incidents(request):
     permission_error = require_dispatcher(request)
+
     if permission_error:
         return permission_error
 
@@ -373,6 +396,7 @@ def get_incidents(request):
 
 def get_incident(request, incident_id):
     permission_error = require_dispatcher(request)
+
     if permission_error:
         return permission_error
 
@@ -399,8 +423,10 @@ def get_incident(request, incident_id):
         status=200,
     )
 
+
 def get_incident_history(request, incident_id):
     permission_error = require_dispatcher(request)
+
     if permission_error:
         return permission_error
 
@@ -443,8 +469,10 @@ def get_incident_history(request, incident_id):
         status=200,
     )
 
+
 def status_update(request, incident_id):
     permission_error = require_dispatcher(request)
+
     if permission_error:
         return permission_error
 
@@ -513,7 +541,6 @@ def status_update(request, incident_id):
     incident.status = new_status
     incident.save()
 
-    # Record the status change in incident history
     IncidentHistory.objects.create(
         incident=incident,
         event_type="STATUS_CHANGED",
@@ -531,6 +558,7 @@ def status_update(request, incident_id):
 
 def assistance_update(request, incident_id):
     permission_error = require_dispatcher(request)
+
     if permission_error:
         return permission_error
 
@@ -570,7 +598,6 @@ def assistance_update(request, incident_id):
 
     assistance_contact_id = data["assistance_contact_id"]
 
-    # DEBUG: Show what the frontend sent
     print(
         "ASSISTANCE ID RECEIVED:",
         assistance_contact_id
@@ -609,7 +636,6 @@ def assistance_update(request, incident_id):
             status=404,
         )
 
-    # DEBUG: Show what we found
     print(
         "INCIDENT FOUND:",
         incident.id
@@ -621,21 +647,17 @@ def assistance_update(request, incident_id):
         contact.name
     )
 
-    # Assign assistance contact
     incident.assigned_assistance_contact = contact
     incident.save()
 
-    # Record the assistance assignment in incident history
     IncidentHistory.objects.create(
         incident=incident,
         event_type="ASSISTANCE_ASSIGNED",
         details=f"Assistance assigned to {contact.name}",
     )
 
-    # Reload from database to verify the save
     incident.refresh_from_db()
 
-    # DEBUG: Show what is actually stored in database
     print(
         "SAVED CONTACT ID:",
         incident.assigned_assistance_contact_id

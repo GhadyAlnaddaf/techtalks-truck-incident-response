@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   Clock,
   FilePlus,
@@ -14,31 +14,25 @@ import { getNavLinks } from "./navLinks";
 import "./AppShell.css";
 
 /**
- * The app shell (TIR-54, role-aware since TIR-61): navy sidebar on
- * desktop, top bar plus drawer below 768px. Presentational only -- it is
- * a layout route in App.jsx, renders the matched page through <Outlet />,
- * and owns no state beyond the drawer.
+ * The app shell (TIR-54, role-aware since TIR-61).
  *
- * Props:
- *   role      A value from ROLES. Picks the links via getNavLinks; a
- *             missing or unknown role shows no links, only Logout.
- *   onLogout  Called when Logout is pressed. The shell does not know how
- *             logging out works.
+ * Desktop:
+ * - Navy sidebar
  *
- * The sidebar and the drawer render the same list, so they never differ.
+ * Mobile:
+ * - Top bar
+ * - Drawer menu below 768px
+ *
+ * The shell is presentational and receives the current page
+ * through the `children` prop.
  */
 
-/** Icon key from navLinks.js -> lucide icon. */
 const NAV_ICONS = {
   report: FilePlus,
   dashboard: LayoutDashboard,
   history: Clock,
 };
 
-/* The nav rows, shared by the sidebar and the drawer. The drawer closes
-   from the link's own onClick rather than from an effect watching the
-   route, so navigating never triggers a cascading render. Logout is the
-   last item, as in the mockup. */
 function NavItems({ links, onNavigate, onLogout }) {
   return (
     <>
@@ -58,6 +52,7 @@ function NavItems({ links, onNavigate, onLogout }) {
             }
           >
             {Icon && <Icon size={20} aria-hidden="true" />}
+
             <span>{label}</span>
           </NavLink>
         );
@@ -72,28 +67,27 @@ function NavItems({ links, onNavigate, onLogout }) {
         }}
       >
         <LogOut size={20} aria-hidden="true" />
+
         <span>Logout</span>
       </button>
     </>
   );
 }
 
-function AppShell({ role, onLogout }) {
+function AppShell({ role, onLogout, children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const menuButtonRef = useRef(null);
 
-  // Focus goes back to the button that opened the drawer. (Opening moves
-  // focus in through autoFocus on the close button.)
   const closeDrawer = useCallback(() => {
     setDrawerOpen(false);
     menuButtonRef.current?.focus();
   }, []);
 
-  // Subscribes to a platform event. The state update happens inside the
-  // listener, not in the effect body.
   useEffect(() => {
-    if (!drawerOpen) return undefined;
+    if (!drawerOpen) {
+      return undefined;
+    }
 
     const handleKeyDown = (event) => {
       if (event.key === "Escape") {
@@ -103,13 +97,16 @@ function AppShell({ role, onLogout }) {
 
     window.addEventListener("keydown", handleKeyDown);
 
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [drawerOpen, closeDrawer]);
 
   const links = getNavLinks(role);
 
   return (
     <div className="shell">
+      {/* Desktop sidebar */}
       <aside className="shell-sidebar">
         <div className="shell-brand-row">
           <Brand />
@@ -120,6 +117,7 @@ function AppShell({ role, onLogout }) {
         </nav>
       </aside>
 
+      {/* Mobile top bar */}
       <header className="shell-topbar">
         <Brand />
 
@@ -135,8 +133,14 @@ function AppShell({ role, onLogout }) {
         </button>
       </header>
 
+      {/* Mobile drawer */}
       {drawerOpen && (
-        <div className="shell-drawer" role="dialog" aria-modal="true" aria-label="Menu">
+        <div
+          className="shell-drawer"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Menu"
+        >
           <div className="shell-drawer-head">
             <Brand />
 
@@ -161,9 +165,8 @@ function AppShell({ role, onLogout }) {
         </div>
       )}
 
-      <main className="shell-main">
-        <Outlet />
-      </main>
+      {/* Current page */}
+      <main className="shell-main">{children}</main>
     </div>
   );
 }
