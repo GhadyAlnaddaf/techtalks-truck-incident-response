@@ -53,11 +53,15 @@ function RegisterForm() {
   const errorRef = useRef(null);
   const doneHeadingRef = useRef(null);
 
-  // The banner sits above the fields and the submit button below them, so
-  // on a phone it can appear off screen.
+  // A server or network error moves focus to the banner. The banner sits
+  // above the fields and the submit button below them, so on a phone it can
+  // appear off screen; and the button, disabled during the request, has
+  // dropped focus by now. Client validation never sets `error`: it focuses
+  // the first invalid field instead.
   useEffect(() => {
     if (error) {
       errorRef.current?.scrollIntoView({ block: "nearest" });
+      errorRef.current?.focus({ preventScroll: true });
     }
   }, [error]);
 
@@ -190,6 +194,7 @@ function RegisterForm() {
             className="alert alert-error register-error"
             role="alert"
             ref={errorRef}
+            tabIndex={-1}
           >
             {error}
           </p>
