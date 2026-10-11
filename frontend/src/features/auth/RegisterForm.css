@@ -33,6 +33,14 @@
   gap: var(--space-4);
 }
 
+/* Two lines reserved under every field, where the shared class reserves
+   one. The longer messages wrap, at 320px most of all, and one appearing
+   on blur must not push the submit button out from under the press that
+   caused the blur. 40px is two of the 20px lines .field-error-line sets. */
+.register-form .field-error-line {
+  min-height: 40px;
+}
+
 .register-error {
   margin-bottom: var(--space-4);
   /* The text comes from the server. One long unbroken word in it must
