@@ -98,3 +98,10 @@
   width: 100%;
   margin-top: var(--space-1);
 }
+
+/* The link to registration (TIR-65). Centred under the form, like
+   .register-switch on that page. The space above it is the .login-body
+   gap. */
+.login-switch {
+  text-align: center;
+}
