@@ -1,7 +1,9 @@
 import { getCsrfToken } from "./authApi";
 
-// TODO confirm with backend
-const REGISTER_URL = "/api/register/";
+const API_URL = "http://127.0.0.1:8000/api";
+
+// TODO confirm the path with backend
+const REGISTER_URL = `${API_URL}/register/`;
 
 const FALLBACK_ERROR = "Something went wrong. Please try again.";
 
