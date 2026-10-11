@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   DEPENDENT_FIELDS,
+  MIN_CONTAINED_LENGTH,
   REGISTER_FIELDS,
   toRegisterPayload,
   validateRegister,
@@ -11,7 +12,7 @@ import {
 
 const VALID = {
   username: "driver24",
-  email: "sam@example.com",
+  email: "samir@example.com",
   password: "open-road-77",
   confirmPassword: "open-road-77",
 };
@@ -141,8 +142,58 @@ describe("password", () => {
 
   test("cannot contain the part of the email before the @", () => {
     assert.equal(
-      passwordError("my-SAM-password"),
+      passwordError("my-SAMIR-password"),
       "Password cannot contain the part of your email before the @.",
+    );
+  });
+
+  test("is checked against a username from 4 characters up", () => {
+    assert.equal(MIN_CONTAINED_LENGTH, 4);
+
+    assert.equal(
+      passwordError("my-SAMI-password", { username: "sami" }),
+      "Password cannot contain your username.",
+    );
+  });
+
+  test("is not checked against a username shorter than 4 characters", () => {
+    for (const [username, password] of [
+      ["sam", "my-sam-password"],
+      ["al", "walrus-falcon"],
+      ["x", "next-exit-77"],
+      // Length is counted after trimming, as the username is sent.
+      ["  al  ", "walrus-falcon"],
+      // Three code points, though six UTF-16 units.
+      ["🚚🚚🚚", "🚚🚚🚚-open-road"],
+    ]) {
+      assert.equal(passwordError(password, { username }), "", username);
+    }
+  });
+
+  test("is checked against an email name from 4 characters up", () => {
+    assert.equal(
+      passwordError("my-SAMI-password", { email: "sami@example.com" }),
+      "Password cannot contain the part of your email before the @.",
+    );
+  });
+
+  test("is not checked against an email name shorter than 4 characters", () => {
+    for (const [email, password] of [
+      ["sam@example.com", "my-sam-password"],
+      ["al@example.com", "walrus-falcon"],
+    ]) {
+      assert.equal(passwordError(password, { email }), "", email);
+    }
+  });
+
+  test("a short username does not switch off the email check, or the reverse", () => {
+    assert.equal(
+      passwordError("my-samir-password", { username: "sam" }),
+      "Password cannot contain the part of your email before the @.",
+    );
+    assert.equal(
+      passwordError("my-driver24-password", { email: "sam@example.com" }),
+      "Password cannot contain your username.",
     );
   });
 

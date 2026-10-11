@@ -33,6 +33,14 @@ export const DEPENDENT_FIELDS = {
 
 export const MIN_PASSWORD_LENGTH = 8;
 
+/**
+ * The password is only checked against a username, or the part of an
+ * email before the @, that is at least this long. A shorter one turns up
+ * inside ordinary passwords by accident: a driver called "al" could not
+ * use "walrus".
+ */
+export const MIN_CONTAINED_LENGTH = 4;
+
 /** Deliberately loose: something@something.something, no spaces. */
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -45,9 +53,11 @@ const emailName = (email) => {
   return at > 0 ? email.slice(0, at) : "";
 };
 
-// An empty needle is "contained" in every string, so it never counts.
+// Too short a needle never counts. That covers the empty one as well,
+// which is "contained" in every string.
 const containsIgnoringCase = (text, needle) =>
-  needle !== "" && text.toLowerCase().includes(needle.toLowerCase());
+  [...needle].length >= MIN_CONTAINED_LENGTH &&
+  text.toLowerCase().includes(needle.toLowerCase());
 
 const validatePassword = (password, username, email) => {
   // Not trimmed: spaces can be part of a real password.
