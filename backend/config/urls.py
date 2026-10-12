@@ -28,10 +28,7 @@ from incidents.views import (
     current_user,
     logout_user,
 )
-from users.views import (
-    register_user,
-    update_user_role,
-)
+from users.views import register_user
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -41,8 +38,6 @@ urlpatterns = [
     path("api/auth/register/", register_user),
     path("api/auth/me/", current_user),
     path("api/auth/logout/", logout_user),
-
-    path("api/users/<int:user_id>/role/", update_user_role),
 
     path("api/incidents/", create_incident),
     path("api/incidents/list/", get_incidents),
