@@ -28,12 +28,14 @@ from incidents.views import (
     current_user,
     logout_user,
 )
+from users.views import register_user
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
     path("api/auth/csrf/", csrf_token),
     path("api/auth/login/", login_user),
+    path("api/auth/register/", register_user),
     path("api/auth/me/", current_user),
     path("api/auth/logout/", logout_user),
 
