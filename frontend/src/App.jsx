@@ -10,6 +10,7 @@ import {
 
 import AppShell from "./components/AppShell";
 import LoginPage from "./features/auth/LoginPage";
+import RegisterForm from "./features/auth/RegisterForm";
 import { ROLES } from "./features/auth/roles";
 import { getCurrentUser, loginUser, logoutUser } from "./features/auth/authApi";
 
@@ -135,6 +136,12 @@ function App() {
               <LoginPageWrapper setUser={setUser} />
             )
           }
+        />
+
+        {/* REGISTER */}
+        <Route
+          path="/register"
+          element={user ? <Navigate to="/" replace /> : <RegisterForm />}
         />
 
         {/* TRUCK DRIVER */}

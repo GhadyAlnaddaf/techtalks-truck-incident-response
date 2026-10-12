@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Eye, EyeOff } from "lucide-react";
 
 import Brand from "../../components/Brand";
@@ -176,6 +177,10 @@ function LoginPage({ onSubmit, loading = false, error = null }) {
               {loading ? "Signing in..." : "Sign in"}
             </button>
           </form>
+
+          <p className="login-switch">
+            <Link to="/register">Create an account</Link>
+          </p>
         </div>
       </div>
     </main>
