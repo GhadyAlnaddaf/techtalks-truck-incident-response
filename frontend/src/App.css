@@ -52,6 +52,14 @@
   margin-right: var(--space-2);
 }
 
+/* Shown when that re-fetch fails: the message, then its Try Again
+   button, which wraps under the message on a narrow screen. */
+.refresh-error {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
 /* =========================
    INCIDENT TABLE
    ========================= */

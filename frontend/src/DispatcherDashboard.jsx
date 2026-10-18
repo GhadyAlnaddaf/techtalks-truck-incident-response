@@ -20,6 +20,11 @@ function DispatcherDashboard() {
   const [refreshing, setRefreshing] =
     useState(false);
 
+  // Set when that re-fetch fails. The update itself still went through,
+  // so the rows keep what the server returned for it.
+  const [refreshFailed, setRefreshFailed] =
+    useState(false);
+
 
   useEffect(() => {
     const loadIncidents = async () => {
@@ -63,11 +68,14 @@ function DispatcherDashboard() {
         await fetchIncidents();
 
       setIncidents(data);
+      setRefreshFailed(false);
     } catch (error) {
       console.error(
         "Error refreshing incidents:",
         error
       );
+
+      setRefreshFailed(true);
     } finally {
       setRefreshing(false);
     }
@@ -132,6 +140,26 @@ function DispatcherDashboard() {
             <p className="alert alert-error" role="alert">
               {error}
             </p>
+          )}
+
+
+          {refreshFailed && (
+            <div className="alert alert-error refresh-error">
+              {/* Worded so it never reads as a failed update: the
+                  update went through, only the list is out of date. */}
+              <span role="alert">
+                Updated, but couldn't refresh the list.
+              </span>
+
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={refreshIncidents}
+                disabled={refreshing}
+              >
+                Try Again
+              </button>
+            </div>
           )}
 
 
