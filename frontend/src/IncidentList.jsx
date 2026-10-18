@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
 import { assignAssistance, updateIncidentStatus } from "./incidentsApi";
@@ -6,6 +6,8 @@ import { assignAssistance, updateIncidentStatus } from "./incidentsApi";
 import StatusBadge from "./features/incidents/StatusBadge";
 
 import { formatDateTime } from "./features/incidents/formatDateTime";
+
+import { isActiveIncident } from "./features/incidents/incidentStatusFilter";
 
 import { useIncidentDetails } from "./useIncidentDetails";
 
@@ -59,6 +61,24 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
    * the panel shows this rather than its loading state.
    */
   const [savedIncident, setSavedIncident] = useState(null);
+
+  /*
+   * Confirmation shown above the table after an update resolves an
+   * incident, since its row and details panel are gone by then.
+   */
+  const [resolvedMessage, setResolvedMessage] = useState("");
+
+  const resolvedRef = useRef(null);
+
+  // The details panel the dispatcher was in has just closed, so put focus
+  // on the confirmation that replaced it. It sits above the table, so on
+  // a phone it can be off screen by now.
+  useEffect(() => {
+    if (resolvedMessage) {
+      resolvedRef.current?.scrollIntoView({ block: "nearest" });
+      resolvedRef.current?.focus({ preventScroll: true });
+    }
+  }, [resolvedMessage]);
 
   /*
    * Load the full incident from the backend
@@ -151,6 +171,7 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
 
     setMessage("");
     setMessageType("");
+    setResolvedMessage("");
   };
 
   /*
@@ -164,24 +185,37 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
 
   /*
    * After a successful update: change the row at once from the incident
-   * the server sent back, reload the details, and re-fetch the list.
-   * The re-fetch reports its own failure, so it never reads as a failed
-   * update, and it starts before actionLoading clears, so the controls
-   * stay disabled throughout.
+   * the server sent back, reload the details (or close them if the
+   * incident is now resolved), and re-fetch the list. The re-fetch
+   * reports its own failure, so it never reads as a failed update, and
+   * it starts before actionLoading clears, so the controls stay
+   * disabled throughout.
    */
   const afterUpdate = (updatedIncident, successMessage) => {
     onIncidentUpdated(updatedIncident);
 
-    /*
-     * Reload the selected incident from Django in the background,
-     * showing the update's copy until it is back.
-     */
-    setSavedIncident(updatedIncident);
-    retry();
+    if (isActiveIncident(updatedIncident)) {
+      /*
+       * Reload the selected incident from Django in the background,
+       * showing the update's copy until it is back.
+       */
+      setSavedIncident(updatedIncident);
+      retry();
 
-    setMessage(successMessage);
+      setMessage(successMessage);
 
-    setMessageType("success");
+      setMessageType("success");
+    } else {
+      /*
+       * Resolved: its row has just left the table, so close the
+       * details and confirm above the table instead.
+       */
+      closeDetails();
+
+      setResolvedMessage(
+        `Incident #${updatedIncident.id} resolved and removed from the active list.`,
+      );
+    }
 
     onRefresh();
   };
@@ -282,15 +316,34 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
   };
 
   /*
+   * First child in both layouts below, so it stays mounted (and keeps
+   * focus) if the list empties or refills while it is showing.
+   */
+  const resolvedConfirmation = resolvedMessage ? (
+    <p
+      className="alert alert-success"
+      role="status"
+      ref={resolvedRef}
+      tabIndex={-1}
+    >
+      {resolvedMessage}
+    </p>
+  ) : null;
+
+  /*
    * No incidents.
    */
   if (incidents.length === 0) {
     return (
-      <div className="card">
-        <IncidentsCardHeader count={0} refreshing={refreshing} />
+      <div className="incident-management">
+        {resolvedConfirmation}
 
-        <div className="state">
-          <p>No active incidents.</p>
+        <div className="card">
+          <IncidentsCardHeader count={0} refreshing={refreshing} />
+
+          <div className="state">
+            <p>No active incidents.</p>
+          </div>
         </div>
       </div>
     );
@@ -298,6 +351,8 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
 
   return (
     <div className="incident-management">
+      {resolvedConfirmation}
+
       {/* INCIDENT TABLE */}
 
       <div className="card incident-table-container">
