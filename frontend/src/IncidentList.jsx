@@ -381,7 +381,11 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
                   key={incident.id}
                   onClick={() => handleIncidentClick(incident)}
                   className={
-                    selectedIncidentId === incident.id ? "selected-row" : ""
+                    selectedIncidentId === incident.id
+                      ? "selected-row"
+                      : actionLoading
+                        ? "disabled-row"
+                        : ""
                   }
                 >
                   <td className="cell-strong cell-nowrap">#{incident.id}</td>

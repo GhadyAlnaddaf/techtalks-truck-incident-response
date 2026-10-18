@@ -88,6 +88,23 @@
   background: var(--color-primary-soft);
 }
 
+/* The other rows while an update is saving. Their clicks are ignored
+   until it is done, so they look unavailable, dimmed like a disabled
+   button. */
+.incident-table tbody tr.disabled-row {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.incident-table tbody tr.disabled-row:hover {
+  background: none;
+}
+
+.incident-table tbody tr.disabled-row .table-link {
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 /* =========================
    INCIDENT DETAILS
    ========================= */
