@@ -26,7 +26,7 @@ function IncidentsCardHeader({ count }) {
       </div>
 
       <span className="incident-count">
-        {count} incident
+        {count} active incident
         {count !== 1 ? "s" : ""}
       </span>
     </div>
@@ -239,7 +239,7 @@ function IncidentList({ incidents, setIncidents }) {
         <IncidentsCardHeader count={0} />
 
         <div className="state">
-          <p>No incidents reported yet.</p>
+          <p>No active incidents.</p>
         </div>
       </div>
     );

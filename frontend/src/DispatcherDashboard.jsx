@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import IncidentList from "./IncidentList";
 import { fetchIncidents } from "./incidentsApi";
+import { isActiveIncident } from "./features/incidents/incidentStatusFilter";
 
 
 function DispatcherDashboard() {
@@ -43,6 +44,12 @@ function DispatcherDashboard() {
 
     loadIncidents();
   }, []);
+
+
+  // The dashboard lists only incidents that still need attention. The
+  // full list stays in state, so the history page's data is untouched.
+  const activeIncidents =
+    incidents.filter(isActiveIncident);
 
 
   return (
@@ -87,7 +94,7 @@ function DispatcherDashboard() {
 
           {!loading && !error && (
             <IncidentList
-              incidents={incidents}
+              incidents={activeIncidents}
               setIncidents={
                 setIncidents
               }
