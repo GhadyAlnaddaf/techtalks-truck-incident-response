@@ -54,15 +54,34 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
   const [actionLoading, setActionLoading] = useState(false);
 
   /*
+   * The incident as the last successful update returned it. The details
+   * reload in the background after an update, and until they are back
+   * the panel shows this rather than its loading state.
+   */
+  const [savedIncident, setSavedIncident] = useState(null);
+
+  /*
    * Load the full incident from the backend
    * whenever the dispatcher selects an incident.
    */
   const {
     state: detailsState,
-    incident: selectedIncident,
+    incident: loadedIncident,
     errorMessage: detailsError,
     retry,
   } = useIncidentDetails(selectedIncidentId);
+
+  /*
+   * What the details panel shows: the loaded incident, or the update's
+   * copy while the details reload after it. If that reload fails, the
+   * panel keeps the update's copy rather than replacing it with an
+   * error, since the server has already confirmed it.
+   */
+  const backgroundIncident =
+    savedIncident?.id === selectedIncidentId ? savedIncident : null;
+
+  const selectedIncident =
+    detailsState === "loaded" ? loadedIncident : backgroundIncident;
 
   /*
    * An update holds the controls until its own request and the list
@@ -113,6 +132,13 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
       return;
     }
 
+    /*
+     * Another incident loads fresh, without the last update's copy.
+     */
+    if (incident.id !== selectedIncidentId) {
+      setSavedIncident(null);
+    }
+
     setSelectedIncidentId(incident.id);
 
     setSelectedAssistance(
@@ -128,6 +154,15 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
   };
 
   /*
+   * Also drops the last update's copy, so reopening the incident later
+   * loads it fresh.
+   */
+  const closeDetails = () => {
+    setSelectedIncidentId(null);
+    setSavedIncident(null);
+  };
+
+  /*
    * After a successful update: change the row at once from the incident
    * the server sent back, reload the details, and re-fetch the list.
    * The re-fetch reports its own failure, so it never reads as a failed
@@ -138,8 +173,10 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
     onIncidentUpdated(updatedIncident);
 
     /*
-     * Reload the selected incident from Django.
+     * Reload the selected incident from Django in the background,
+     * showing the update's copy until it is back.
      */
+    setSavedIncident(updatedIncident);
     retry();
 
     setMessage(successMessage);
@@ -347,7 +384,7 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
         <div className="card incident-details">
           {/* Loading */}
 
-          {detailsState === "loading" && (
+          {detailsState === "loading" && !selectedIncident && (
             <div className="state">
               <p>Loading incident details...</p>
             </div>
@@ -355,7 +392,7 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
 
           {/* Error */}
 
-          {detailsState === "error" && (
+          {detailsState === "error" && !selectedIncident && (
             <div className="state">
               <p className="alert alert-error" role="alert">
                 {detailsError}
@@ -370,9 +407,9 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
             </div>
           )}
 
-          {/* Loaded */}
+          {/* Loaded, or reloading in the background after an update */}
 
-          {detailsState === "loaded" && selectedIncident && (
+          {selectedIncident && (
             <>
               {/* DETAILS HEADER */}
 
@@ -385,7 +422,7 @@ function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
 
                 <button
                   className="btn btn-secondary close-button"
-                  onClick={() => setSelectedIncidentId(null)}
+                  onClick={closeDetails}
                   aria-label="Close incident details"
                 >
                   <X size={20} aria-hidden="true" />
