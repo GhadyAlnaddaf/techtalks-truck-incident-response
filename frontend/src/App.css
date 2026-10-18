@@ -36,6 +36,22 @@
   white-space: nowrap;
 }
 
+.incident-header-meta {
+  display: flex;
+  align-items: center;
+}
+
+/* "Refreshing..." while the list re-fetches after an update. Emptied
+   rather than removed the rest of the time, so the live region stays. */
+.refresh-status {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.refresh-status:not(:empty) {
+  margin-right: var(--space-2);
+}
+
 /* =========================
    INCIDENT TABLE
    ========================= */

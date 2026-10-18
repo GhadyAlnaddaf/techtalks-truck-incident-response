@@ -15,6 +15,11 @@ function DispatcherDashboard() {
   const [error, setError] =
     useState("");
 
+  // A re-fetch after an update. Unlike the first load, it keeps the
+  // table on screen while it runs.
+  const [refreshing, setRefreshing] =
+    useState(false);
+
 
   useEffect(() => {
     const loadIncidents = async () => {
@@ -44,6 +49,44 @@ function DispatcherDashboard() {
 
     loadIncidents();
   }, []);
+
+
+  /*
+   * Re-fetch the list after an assignment or status change, so the
+   * server stays the single source of truth.
+   */
+  const refreshIncidents = async () => {
+    try {
+      setRefreshing(true);
+
+      const data =
+        await fetchIncidents();
+
+      setIncidents(data);
+    } catch (error) {
+      console.error(
+        "Error refreshing incidents:",
+        error
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+
+  /*
+   * Put the incident an update returned into the list straight away, so
+   * its row changes before the re-fetch is back.
+   */
+  const applyIncidentUpdate = (updatedIncident) => {
+    setIncidents((currentIncidents) =>
+      currentIncidents.map((incident) =>
+        incident.id === updatedIncident.id
+          ? updatedIncident
+          : incident
+      )
+    );
+  };
 
 
   // The dashboard lists only incidents that still need attention. The
@@ -95,9 +138,11 @@ function DispatcherDashboard() {
           {!loading && !error && (
             <IncidentList
               incidents={activeIncidents}
-              setIncidents={
-                setIncidents
+              refreshing={refreshing}
+              onIncidentUpdated={
+                applyIncidentUpdate
               }
+              onRefresh={refreshIncidents}
             />
           )}
 

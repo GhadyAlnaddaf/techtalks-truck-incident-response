@@ -14,7 +14,7 @@ import { useIncidentDetails } from "./useIncidentDetails";
  * inside the white card, above the table, rather than on the page
  * background. Presentational only -- no state, no handlers.
  */
-function IncidentsCardHeader({ count }) {
+function IncidentsCardHeader({ count, refreshing }) {
   return (
     <div className="card-header">
       <div>
@@ -25,15 +25,23 @@ function IncidentsCardHeader({ count }) {
         </p>
       </div>
 
-      <span className="incident-count">
-        {count} active incident
-        {count !== 1 ? "s" : ""}
-      </span>
+      <div className="incident-header-meta">
+        {/* Always rendered, so screen readers are already listening when
+            the text appears. */}
+        <span className="refresh-status" role="status">
+          {refreshing ? "Refreshing..." : ""}
+        </span>
+
+        <span className="incident-count">
+          {count} active incident
+          {count !== 1 ? "s" : ""}
+        </span>
+      </div>
     </div>
   );
 }
 
-function IncidentList({ incidents, setIncidents }) {
+function IncidentList({ incidents, refreshing, onIncidentUpdated, onRefresh }) {
   const [selectedIncidentId, setSelectedIncidentId] = useState(null);
 
   const [selectedAssistance, setSelectedAssistance] = useState("");
@@ -55,6 +63,12 @@ function IncidentList({ incidents, setIncidents }) {
     errorMessage: detailsError,
     retry,
   } = useIncidentDetails(selectedIncidentId);
+
+  /*
+   * An update holds the controls until its own request and the list
+   * re-fetch after it are both done, so it cannot be sent twice.
+   */
+  const controlsDisabled = actionLoading || refreshing;
 
   /*
    * These IDs must match AssistanceContact records
@@ -91,6 +105,14 @@ function IncidentList({ incidents, setIncidents }) {
    * User selects an incident from the table.
    */
   const handleIncidentClick = (incident) => {
+    /*
+     * Hold the selection while an update is saving, so its result
+     * cannot land on a different incident.
+     */
+    if (actionLoading) {
+      return;
+    }
+
     setSelectedIncidentId(incident.id);
 
     setSelectedAssistance(
@@ -103,6 +125,28 @@ function IncidentList({ incidents, setIncidents }) {
 
     setMessage("");
     setMessageType("");
+  };
+
+  /*
+   * After a successful update: change the row at once from the incident
+   * the server sent back, reload the details, and re-fetch the list.
+   * The re-fetch reports its own failure, so it never reads as a failed
+   * update, and it starts before actionLoading clears, so the controls
+   * stay disabled throughout.
+   */
+  const afterUpdate = (updatedIncident, successMessage) => {
+    onIncidentUpdated(updatedIncident);
+
+    /*
+     * Reload the selected incident from Django.
+     */
+    retry();
+
+    setMessage(successMessage);
+
+    setMessageType("success");
+
+    onRefresh();
   };
 
   /*
@@ -132,15 +176,6 @@ function IncidentList({ incidents, setIncidents }) {
       );
 
       /*
-       * Update the incident in the table.
-       */
-      setIncidents((currentIncidents) =>
-        currentIncidents.map((incident) =>
-          incident.id === updatedIncident.id ? updatedIncident : incident,
-        ),
-      );
-
-      /*
        * Keep the selected assistance in sync.
        */
       setSelectedAssistance(
@@ -149,16 +184,10 @@ function IncidentList({ incidents, setIncidents }) {
           : "",
       );
 
-      /*
-       * Reload the selected incident from Django.
-       */
-      retry();
-
-      setMessage(
+      afterUpdate(
+        updatedIncident,
         `Assistance assigned successfully to Incident #${updatedIncident.id}.`,
       );
-
-      setMessageType("success");
     } catch (error) {
       console.error("Failed to assign assistance:", error);
 
@@ -196,29 +225,14 @@ function IncidentList({ incidents, setIncidents }) {
       );
 
       /*
-       * Update the incident in the table.
-       */
-      setIncidents((currentIncidents) =>
-        currentIncidents.map((incident) =>
-          incident.id === updatedIncident.id ? updatedIncident : incident,
-        ),
-      );
-
-      /*
        * Keep the selected status in sync.
        */
       setSelectedStatus(updatedIncident.status);
 
-      /*
-       * Reload the selected incident from Django.
-       */
-      retry();
-
-      setMessage(
+      afterUpdate(
+        updatedIncident,
         `Incident #${updatedIncident.id} status updated successfully.`,
       );
-
-      setMessageType("success");
     } catch (error) {
       console.error("Failed to update status:", error);
 
@@ -236,7 +250,7 @@ function IncidentList({ incidents, setIncidents }) {
   if (incidents.length === 0) {
     return (
       <div className="card">
-        <IncidentsCardHeader count={0} />
+        <IncidentsCardHeader count={0} refreshing={refreshing} />
 
         <div className="state">
           <p>No active incidents.</p>
@@ -250,7 +264,10 @@ function IncidentList({ incidents, setIncidents }) {
       {/* INCIDENT TABLE */}
 
       <div className="card incident-table-container">
-        <IncidentsCardHeader count={incidents.length} />
+        <IncidentsCardHeader
+          count={incidents.length}
+          refreshing={refreshing}
+        />
 
         <div className="table-scroll">
           <table className="table incident-table">
@@ -436,7 +453,7 @@ function IncidentList({ incidents, setIncidents }) {
                     className="input"
                     value={selectedAssistance}
                     onChange={(e) => setSelectedAssistance(e.target.value)}
-                    disabled={actionLoading}
+                    disabled={controlsDisabled}
                   >
                     <option value="">Select assistance</option>
 
@@ -450,7 +467,7 @@ function IncidentList({ incidents, setIncidents }) {
                   <button
                     className="btn btn-primary"
                     onClick={handleAssign}
-                    disabled={actionLoading}
+                    disabled={controlsDisabled}
                   >
                     {actionLoading ? "Saving..." : "Assign Assistance"}
                   </button>
@@ -484,7 +501,7 @@ function IncidentList({ incidents, setIncidents }) {
                     className="input"
                     value={selectedStatus}
                     onChange={(e) => setSelectedStatus(e.target.value)}
-                    disabled={actionLoading}
+                    disabled={controlsDisabled}
                   >
                     <option value="">Select status</option>
 
@@ -498,7 +515,7 @@ function IncidentList({ incidents, setIncidents }) {
                   <button
                     className="btn btn-primary"
                     onClick={handleStatusUpdate}
-                    disabled={actionLoading}
+                    disabled={controlsDisabled}
                   >
                     {actionLoading ? "Saving..." : "Update Status"}
                   </button>
