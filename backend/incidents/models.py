@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 
 
@@ -24,6 +25,14 @@ class Incident(models.Model):
         null=True,
         blank=True,
         related_name='assigned_incidents'
+    )
+
+    reporting_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='incidents',
+        null=True,
+        blank=True
     )
 
     # Stores the contact's phone number directly on the incident row.
