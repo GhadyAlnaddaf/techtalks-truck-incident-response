@@ -325,7 +325,6 @@ The project was developed collaboratively as part of the TechTalks internship pr
 | Jana Mais | Database development |
 | Salam Shaib | Frontend development |
 
-*Replace the generic member labels with the final team members' names and GitHub usernames if required.*
 
 ## Future Improvements
 
