@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { X } from "lucide-react";
 import "./IncidentHistory.css";
 
-import { fetchIncidents, fetchIncidentHistory } from "../../incidentsApi";
+import {
+  fetchResolvedIncidents,
+  fetchIncidentHistory,
+} from "../../incidentsApi";
+
 import StatusBadge from "./StatusBadge";
 import { filterByStatus, getStatusOptions } from "./incidentStatusFilter";
 import { formatEventType } from "./formatEventType";
@@ -10,33 +14,29 @@ import { formatEventType } from "./formatEventType";
 function IncidentHistory() {
   const [incidents, setIncidents] = useState([]);
   const [search, setSearch] = useState("");
-  // "" means all statuses.
   const [statusFilter, setStatusFilter] = useState("");
   const [openIncident, setOpenIncident] = useState(null);
-
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const detailsRef = useRef(null);
+  const detailsHeadingRef = useRef(null);
+  const viewButtonsRef = useRef(new Map());
+  const lastOpenRef = useRef(null);
+
   /*
-   * Load incidents and their history from Django.
+   * Load only resolved incidents, then load each incident's event history.
    */
   useEffect(() => {
+    let cancelled = false;
+
     const loadIncidentHistory = async () => {
       try {
         setLoading(true);
         setError("");
 
-        // Get all incidents from the database.
-        const incidentData = await fetchIncidents();
+        const incidentData = await fetchResolvedIncidents();
 
-        /*
-         * Get history for every incident.
-         *
-         * Example:
-         * /api/incidents/1/history/
-         * /api/incidents/2/history/
-         * /api/incidents/3/history/
-         */
         const incidentsWithHistory = await Promise.all(
           incidentData.map(async (incident) => {
             try {
@@ -55,32 +55,39 @@ function IncidentHistory() {
               return {
                 ...incident,
                 history: [],
+                historyError:
+                  historyError.message ||
+                  "Could not load this incident's events.",
               };
             }
           }),
         );
 
-        setIncidents(incidentsWithHistory);
+        if (!cancelled) {
+          setIncidents(incidentsWithHistory);
+        }
       } catch (err) {
-        console.error("Failed to load incident history:", err);
+        console.error("Failed to load resolved incidents:", err);
 
-        setError(err.message || "Failed to load incident history.");
+        if (!cancelled) {
+          setError(err.message || "Failed to load resolved incidents.");
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     };
 
     loadIncidentHistory();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /*
    * Format Django datetime values for display.
-   *
-   * Example:
-   * 2026-09-16T10:42:00Z
-   *
-   * becomes:
-   * Sep 16, 2026, 10:42 AM
    */
   const formatDate = (dateValue) => {
     if (!dateValue) {
@@ -103,7 +110,8 @@ function IncidentHistory() {
   };
 
   /*
-   * Filter incidents according to the search field.
+   * Search resolved incidents by truck, location, description,
+   * status, assistance contact, or reporting user.
    */
   const filteredIncidents = useMemo(() => {
     const searchValue = search.trim().toLowerCase();
@@ -114,15 +122,20 @@ function IncidentHistory() {
 
     return incidents.filter((incident) => {
       const truckId = String(incident.truck_id || "").toLowerCase();
-
       const location = String(incident.location || "").toLowerCase();
-
       const description = String(incident.description || "").toLowerCase();
-
       const status = String(incident.status || "").toLowerCase();
 
       const assistanceName = String(
         incident.assigned_assistance_contact?.name || "",
+      ).toLowerCase();
+
+      const reporterUsername = String(
+        incident.reporting_user?.username || "",
+      ).toLowerCase();
+
+      const reporterEmail = String(
+        incident.reporting_user?.email || "",
       ).toLowerCase();
 
       return (
@@ -130,33 +143,29 @@ function IncidentHistory() {
         location.includes(searchValue) ||
         description.includes(searchValue) ||
         status.includes(searchValue) ||
-        assistanceName.includes(searchValue)
+        assistanceName.includes(searchValue) ||
+        reporterUsername.includes(searchValue) ||
+        reporterEmail.includes(searchValue)
       );
     });
   }, [incidents, search]);
 
-  /*
-   * Open/close an incident.
-   */
   const toggleIncident = (id) => {
     setOpenIncident((currentId) => (currentId === id ? null : id));
   };
 
   /*
-   * The details open below the table, which on a phone is out of sight.
-   * Opening scrolls the panel into view and moves focus to its heading;
-   * closing hands focus back to the View button of the incident that was
-   * open.
+   * Keep keyboard focus useful when the details panel opens or closes.
    */
-  const detailsRef = useRef(null);
-  const detailsHeadingRef = useRef(null);
-  const viewButtonsRef = useRef(new Map());
-  const lastOpenRef = useRef(null);
-
   useEffect(() => {
     if (openIncident !== null) {
-      detailsRef.current?.scrollIntoView({ block: "nearest" });
-      detailsHeadingRef.current?.focus({ preventScroll: true });
+      detailsRef.current?.scrollIntoView({
+        block: "nearest",
+      });
+
+      detailsHeadingRef.current?.focus({
+        preventScroll: true,
+      });
     } else if (lastOpenRef.current !== null) {
       viewButtonsRef.current.get(lastOpenRef.current)?.focus();
     }
@@ -164,61 +173,51 @@ function IncidentHistory() {
     lastOpenRef.current = openIncident;
   }, [openIncident]);
 
-  /*
-   * Loading state.
-   */
+  const visibleIncidents = filterByStatus(filteredIncidents, statusFilter);
+
+  const openDetails = visibleIncidents.find(
+    (incident) => incident.id === openIncident,
+  );
+
   if (loading) {
     return (
       <div className="page history-page">
         <HistoryHeader />
 
         <div className="card state">
-          <p className="state-title">Loading incident history...</p>
-          <p>Please wait while the incidents are loaded.</p>
+          <p className="state-title">Loading resolved incidents...</p>
+          <p>Please wait while the history is loaded.</p>
         </div>
       </div>
     );
   }
 
-  /*
-   * Error state.
-   */
   if (error) {
     return (
       <div className="page history-page">
         <HistoryHeader />
 
         <div className="card state" role="alert">
-          <p className="state-title">Unable to load incidents</p>
+          <p className="state-title">Unable to load incident history</p>
           <p>{error}</p>
+
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );
   }
-
-  /*
-   * The search result, narrowed by the status filter.
-   */
-  const visibleIncidents = filterByStatus(filteredIncidents, statusFilter);
-
-  /*
-   * The open incident's details, shown below the table as on the
-   * dashboard. Taken from the visible list, so (as before) an incident
-   * the search or filter hides is not shown.
-   */
-  const openDetails = visibleIncidents.find(
-    (incident) => incident.id === openIncident,
-  );
 
   return (
     <div className="page history-page">
       <HistoryHeader />
 
       <div className="incident-management">
-        {/* =========================
-            SEARCH
-           ========================= */}
-
         <div className="history-toolbar">
           <div className="field history-search">
             <label className="field-label" htmlFor="history-search">
@@ -229,9 +228,9 @@ function IncidentHistory() {
               id="history-search"
               className="input"
               type="text"
-              placeholder="Search by truck, location, status..."
+              placeholder="Search by truck, location, reporter..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(event) => setSearch(event.target.value)}
             />
           </div>
 
@@ -244,7 +243,7 @@ function IncidentHistory() {
               id="history-status"
               className="input"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(event) => setStatusFilter(event.target.value)}
             >
               <option value="">All statuses</option>
 
@@ -257,22 +256,19 @@ function IncidentHistory() {
           </div>
         </div>
 
-        {/* =========================
-            INCIDENT TABLE
-           ========================= */}
-
         <div className="card incident-table-container">
           <div className="card-header">
             <div>
-              <h2 className="card-title">Incidents</h2>
+              <h2 className="card-title">Resolved Incidents</h2>
 
               <p className="card-subtitle">
-                Select an incident to view its details and events.
+                Select an incident to view its details and event timeline.
               </p>
             </div>
 
             <span className="incident-count">
-              {incidents.length} {incidents.length === 1 ? "incident" : "incidents"}
+              {incidents.length}{" "}
+              {incidents.length === 1 ? "incident" : "incidents"}
             </span>
           </div>
 
@@ -304,13 +300,19 @@ function IncidentHistory() {
                         </td>
 
                         <td className="cell-strong">
-                          <span className="cell-truncate" title={incident.truck_id}>
+                          <span
+                            className="cell-truncate"
+                            title={incident.truck_id}
+                          >
                             {incident.truck_id}
                           </span>
                         </td>
 
                         <td>
-                          <span className="cell-truncate" title={incident.location}>
+                          <span
+                            className="cell-truncate"
+                            title={incident.location}
+                          >
                             {incident.location}
                           </span>
                         </td>
@@ -320,22 +322,23 @@ function IncidentHistory() {
                         </td>
 
                         <td>
-                          {/* No handler of its own: the click bubbles to the
-                              row, which opens and closes the details. This
-                              makes that action visible and reachable by
-                              keyboard. */}
                           <button
                             ref={(button) => {
-                              viewButtonsRef.current.set(incident.id, button);
-                              return () =>
+                              if (button) {
+                                viewButtonsRef.current.set(incident.id, button);
+                              } else {
                                 viewButtonsRef.current.delete(incident.id);
+                              }
                             }}
                             type="button"
                             className="table-link"
                             aria-expanded={isOpen}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              toggleIncident(incident.id);
+                            }}
                           >
-                            View
-                            <span aria-hidden="true">&rarr;</span>
+                            View <span aria-hidden="true">&rarr;</span>
                           </button>
                         </td>
                       </tr>
@@ -345,28 +348,21 @@ function IncidentHistory() {
               </table>
             </div>
           ) : (
-            /* =========================
-               EMPTY RESULT
-               ========================= */
             <div className="state">
               <p className="state-title">
                 {incidents.length === 0
-                  ? "No incidents found"
+                  ? "No resolved incidents"
                   : "No matching incidents"}
               </p>
 
               <p>
                 {incidents.length === 0
-                  ? "There are no incidents in the database yet."
+                  ? "Resolved incidents will appear here."
                   : "Try another search or status."}
               </p>
             </div>
           )}
         </div>
-
-        {/* =========================
-            INCIDENT DETAILS
-           ========================= */}
 
         {openDetails && (
           <div className="card incident-details" ref={detailsRef}>
@@ -411,8 +407,22 @@ function IncidentHistory() {
               </div>
 
               <div className="detail-item">
-                <span>Updated</span>
+                <span>Last Updated</span>
                 <strong>{formatDate(openDetails.updated_at)}</strong>
+              </div>
+
+              <div className="detail-item">
+                <span>Reporter Username</span>
+                <strong>
+                  {openDetails.reporting_user?.username || "Unknown"}
+                </strong>
+              </div>
+
+              <div className="detail-item">
+                <span>Reporter Email</span>
+                <strong>
+                  {openDetails.reporting_user?.email || "Not available"}
+                </strong>
               </div>
 
               <div className="detail-item full-width">
@@ -423,14 +433,14 @@ function IncidentHistory() {
               </div>
             </div>
 
-            {/* Assistance Contact */}
-
             <div className="control-section">
               <h3>Assigned Assistance</h3>
 
               {openDetails.assigned_assistance_contact ? (
                 <div className="current-assignment">
-                  <strong>{openDetails.assigned_assistance_contact.name}</strong>
+                  <strong>
+                    {openDetails.assigned_assistance_contact.name}
+                  </strong>
 
                   <span>
                     Phone:{" "}
@@ -440,7 +450,8 @@ function IncidentHistory() {
                   </span>
 
                   <span>
-                    Email: {openDetails.assigned_assistance_contact.email || "—"}
+                    Email:{" "}
+                    {openDetails.assigned_assistance_contact.email || "—"}
                   </span>
                 </div>
               ) : (
@@ -448,16 +459,21 @@ function IncidentHistory() {
               )}
             </div>
 
-            {/* Incident History */}
-
             <div className="control-section">
               <h3>Incident Events</h3>
 
-              {(openDetails.history || []).length > 0 ? (
+              {openDetails.historyError ? (
+                <p className="alert alert-error" role="alert">
+                  {openDetails.historyError}
+                </p>
+              ) : (openDetails.history || []).length > 0 ? (
                 <ol className="history-timeline">
                   {openDetails.history.map((event) => (
                     <li className="history-event" key={event.id}>
-                      <span className="history-event-marker" aria-hidden="true" />
+                      <span
+                        className="history-event-marker"
+                        aria-hidden="true"
+                      />
 
                       <div className="history-event-content">
                         <strong className="history-event-type">
@@ -484,14 +500,13 @@ function IncidentHistory() {
   );
 }
 
-/** Page title and subtitle, the same in the loading, error and loaded views. */
 function HistoryHeader() {
   return (
     <header className="page-header">
       <h1 className="page-title">Incident History</h1>
 
       <p className="page-subtitle">
-        View the complete history of previously reported incidents.
+        View the complete history of resolved incidents.
       </p>
     </header>
   );

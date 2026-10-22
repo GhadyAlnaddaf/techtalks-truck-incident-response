@@ -20,8 +20,25 @@ async function parseResponse(response) {
   return data;
 }
 
+/*
+ * Fetch unresolved incidents for the Dispatcher Dashboard.
+ */
 export async function fetchIncidents() {
   const response = await fetch(`${API_URL}/list/`, {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const data = await parseResponse(response);
+
+  return data.incidents || [];
+}
+
+/*
+ * Fetch only resolved incidents for the Incident History page.
+ */
+export async function fetchResolvedIncidents() {
+  const response = await fetch(`${API_URL}/resolved/`, {
     method: "GET",
     credentials: "include",
   });
