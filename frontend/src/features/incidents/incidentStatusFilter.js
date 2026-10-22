@@ -1,10 +1,11 @@
 /**
- * Status filter for the incident history page (TIR-61).
+ * Status filters for the incident history page (TIR-61) and the
+ * dispatcher dashboard (TIR-73).
  *
- * Pure, so it runs under `npm test`, and it works only on data the page
- * already loads. Incident.status is a free-text CharField on the backend,
- * so statuses are compared the way StatusBadge compares them: trimmed,
- * lower-cased, with runs of whitespace collapsed.
+ * Pure, so they run under `npm test`, and they work only on data the
+ * pages already load. Incident.status is a free-text CharField on the
+ * backend, so statuses are compared the way StatusBadge compares them:
+ * trimmed, lower-cased, with runs of whitespace collapsed.
  */
 
 /** The workflow order of VALID_STATUSES in backend/incidents/views.py. */
@@ -65,4 +66,19 @@ export function filterByStatus(incidents, status) {
   if (!wanted) return incidents;
 
   return incidents.filter((incident) => normalise(incident.status) === wanted);
+}
+
+/**
+ * Whether an incident belongs on the dispatcher dashboard, which shows
+ * every incident that is not Resolved. An incident with a missing or
+ * unrecognised status stays visible, so nothing is hidden unless it is
+ * definitely resolved.
+ *
+ * @returns {boolean} false for a Resolved incident, or for anything that
+ *   is not an incident object at all.
+ */
+export function isActiveIncident(incident) {
+  if (!incident || typeof incident !== "object") return false;
+
+  return normalise(incident.status) !== "resolved";
 }
