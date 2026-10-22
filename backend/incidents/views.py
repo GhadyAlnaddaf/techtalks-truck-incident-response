@@ -225,6 +225,7 @@ def incident_to_dict(incident):
     """
 
     assistance_contact = incident.assigned_assistance_contact
+    reporting_user = incident.reporting_user
 
     return {
         "id": incident.id,
@@ -234,6 +235,14 @@ def incident_to_dict(incident):
         "status": incident.status,
         "created_at": incident.created_at.isoformat(),
         "updated_at": incident.updated_at.isoformat(),
+        "reporting_user": (
+            {
+                "username": reporting_user.get_username(),
+                "email": reporting_user.email,
+            }
+            if reporting_user
+            else None
+        ),
         "assigned_assistance_contact": (
             {
                 "id": assistance_contact.id,
@@ -341,6 +350,7 @@ def create_incident(request):
         truck_id=truck_id,
         location=location,
         description=description,
+        reporting_user=request.user,
     )
 
     IncidentHistory.objects.create(
