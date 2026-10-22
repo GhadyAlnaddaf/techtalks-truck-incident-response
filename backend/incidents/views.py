@@ -379,7 +379,28 @@ def get_incidents(request):
             status=405,
         )
 
-    incidents = Incident.objects.all().order_by("-created_at")
+    filter_type = request.GET.get("filter")
+
+    if filter_type == "unresolved":
+        incidents = Incident.objects.exclude(
+            status="Resolved"
+        ).order_by("-created_at")
+
+    elif filter_type == "resolved":
+        incidents = Incident.objects.filter(
+            status="Resolved"
+        ).order_by("-created_at")
+
+    elif filter_type is None:
+        incidents = Incident.objects.all().order_by("-created_at")
+
+    else:
+        return JsonResponse(
+            {
+                "message": "Invalid filter"
+            },
+            status=400,
+        )
 
     incidents_data = [
         incident_to_dict(incident)
@@ -648,12 +669,19 @@ def assistance_update(request, incident_id):
     )
 
     incident.assigned_assistance_contact = contact
+    incident.status = "Assigned"
     incident.save()
 
     IncidentHistory.objects.create(
         incident=incident,
         event_type="ASSISTANCE_ASSIGNED",
         details=f"Assistance assigned to {contact.name}",
+    )
+
+    IncidentHistory.objects.create(
+        incident=incident,
+        event_type="STATUS_CHANGED",
+        details="Status changed to Assigned",
     )
 
     incident.refresh_from_db()
